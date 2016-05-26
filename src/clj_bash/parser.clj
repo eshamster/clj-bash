@@ -2,13 +2,35 @@
 
 (use '[clojure.string :only [join]])
 
+(declare parse-main)
+
+(defn- add-prefix [prefix rest]
+  (concat (list prefix) rest))
+
+;; TODO: enable to accept numbers in rest (Note: Ex. (name 1) raises error)
 (defn- parse-command [command rest]
-  (concat (list :bash command) (map name rest)))
+  (add-prefix :command (concat (list command) (map name rest))))
+
+(defn- cover-by-eval [seq]
+  (add-prefix :eval seq))
+
+(defn- parse-array [seq]
+  (if (vector? seq)
+    (add-prefix :array seq)
+    (cover-by-eval (parse-main seq))))
+
+(defn- parse-for [var array rest]
+  (add-prefix
+   :for (concat (list var (parse-array array))
+                (map parse-main rest))))
 
 (defn parse-main [line]
-  (if (keyword? (first line))
-    (parse-command (name (first line)) (rest line))
-    (eval line)))
+  (let [kind (first line)
+        args (rest line)]
+    (if (keyword? kind)
+      (parse-command (name kind) args)
+      (case (name kind)
+        "for" (parse-for (first args) (second args) (nthrest args 2))))))
 
 (defmacro do-dsl [& body]
   `(map parse-main '~body))

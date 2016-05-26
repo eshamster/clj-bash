@@ -4,7 +4,10 @@
 (use '[clj-bash.pprint :only [pprint-tree]])
 
 (defn -main [& args]
-  (pprint-tree
-   (do-dsl
-    (:cd test)
-    (:ls .))))
+  (println (do-dsl
+            (:cd test)
+            (:ls .)))
+  (println "--------")
+  (pprint-tree (do-dsl
+                (:cd test)
+                (:ls .))))

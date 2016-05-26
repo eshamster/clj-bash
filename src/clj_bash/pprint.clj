@@ -1,9 +1,13 @@
 (ns clj-bash.pprint)
 
-(use '[clojure.string :only [join]])
-(use '[clojure.core.match :only [match]])
+(use '[clj-bash.str :only [str-main]])
+
+(def ^:dynamic num-indent 2)
+
+(defn- print-line [depth str-line]
+  (str (apply str (repeat (* depth num-indent) " "))
+       str-line))
 
 (defn pprint-tree [tree]
-  (doseq [line tree]
-    (match [line]
-           [([:bash & rest] :seq)] (println (join " " rest)))))
+  (doseq [line (str-main tree)]
+    (println line)))
