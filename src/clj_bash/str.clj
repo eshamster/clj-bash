@@ -20,8 +20,13 @@
         (str-main (nthrest expr 2))
         "done"))
 
+;; TODO: needs recur for such a case as (:array 0 (:eval :expr "0 + 5") 2)
+(defn- str-array [expr]
+  (join " " expr))
+
 (defn- str-line [line]
   (match [line]
+         [([:array & expr] :seq)] (str-array expr)
          [([:command & expr] :seq)] (str-command expr)
          [([:eval & expr] :seq)] (str-eval expr)
          [([:for & expr] :seq)] (str-for expr)))
