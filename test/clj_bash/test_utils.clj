@@ -13,7 +13,6 @@
     `(str "test/" (.getParent (io/file ~*file*)))))
 
 (defn- get-kind-path [kind test-name specifier]
-  (println (test-path))
   (.getCanonicalPath
    (io/file (dirname) kind (str test-name "." specifier))))
 
