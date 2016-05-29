@@ -4,4 +4,5 @@
   :license {:name "MIT License"
             :url "https://opensource.org/licenses/MIT"}
   :dependencies [[org.clojure/clojure "1.8.0"]
-                 [org.clojure/core.match "0.3.0-alpha4"]])
+                 [org.clojure/core.match "0.3.0-alpha4"]
+                 [me.raynes/conch "0.8.0"]])
