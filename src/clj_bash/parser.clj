@@ -2,7 +2,7 @@
 
 (use '[clojure.string :only [join]])
 
-(declare parse-main)
+(declare parse-line)
 
 (defn- add-prefix [prefix rest]
   (concat (list prefix) rest))
