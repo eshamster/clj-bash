@@ -7,10 +7,13 @@
             [me.raynes.conch :as sh]))
 
 (defmacro ^:private dirname []
-  "This is implemented as a macro to be evaluated at compile time. Otherwise, in REPL *file* is evaluated as '*cider-repl clj-bash*<2>'"
-  `(.getParent (io/file ~*file*)))
+  "This is implemented as a macro to be evaluated at compile time. In REPL *file* is not defined. ;; This else clause is probably a dirty hack:( In 'lein test', the *file* is 'clj_bash/test_utils.clj' and when getting its canonical path the directory 'test' is not included."
+  (if (.exists (io/file *file*))
+    `(.getParent (io/file ~*file*))
+    `(str "test/" (.getParent (io/file ~*file*)))))
 
 (defn- get-kind-path [kind test-name specifier]
+  (println (test-path))
   (.getCanonicalPath
    (io/file (dirname) kind (str test-name "." specifier))))
 
