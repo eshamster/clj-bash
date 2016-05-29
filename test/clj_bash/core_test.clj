@@ -11,4 +11,8 @@
   (test-bash for-array
              (for i [0 4 3 5] (:echo $i)))
   (test-bash for-expression
-             (for count (:seq 0 5) (:echo $count))))
+             (for count (:seq 0 5) (:echo $count)))
+  (test-bash for-nested
+             (for i [0 4 3]
+                  (for j (:seq 0 3)
+                       (:echo "$i, $j")))))
