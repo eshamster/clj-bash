@@ -6,6 +6,9 @@
 - Syntax Sugar
   - trap
   - exportへの追記 (Ex. `export PATH=/usr/local/bin:${PATH}`)
+  - to-stdout
+  - to-stderr
+  - relative path
 - 未分類
   - function
   - pipe

@@ -17,14 +17,14 @@
 (defn- parse-array [seq]
   (if (vector? seq)
     (add-prefix :array seq)
-    (cover-by-eval (parse-main seq))))
+    (cover-by-eval (parse-line seq))))
 
 (defn- parse-for [var array rest]
   (add-prefix
    :for (concat (list var (parse-array array))
-                (map parse-main rest))))
+                (map parse-line rest))))
 
-(defn parse-main [line]
+(defn- parse-line [line]
   (let [kind (first line)
         args (rest line)]
     (if (keyword? kind)
@@ -32,5 +32,5 @@
       (case (name kind)
         "for" (parse-for (first args) (second args) (nthrest args 2))))))
 
-(defmacro do-dsl [& body]
-  `(map parse-main '~body))
+(defn parse-main [body]
+  (map parse-line body))
