@@ -7,4 +7,8 @@
   (test-bash simple-execution
              (:echo 0)
              (:echo -n "in _")
-             (:echo test)))
+             (:echo test))
+  (test-bash for-array
+             (for i [0 4 3 5] (:echo $i)))
+  (test-bash for-expression
+             (for count (:seq 0 5) (:echo $count))))
