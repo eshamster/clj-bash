@@ -4,4 +4,6 @@
             [clj-bash.test-utils :refer :all]))
 
 (deftest a-test
-  (test-bash sample (:echo test1)))
+  (test-bash sample
+             (:echo test1)
+             (:echo test2)))
