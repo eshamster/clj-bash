@@ -1,3 +1,5 @@
+# functions
+
 - 制御構造
   - if
   - while
@@ -13,3 +15,8 @@
   - function
   - pipe
   - set
+
+# fixes
+
+- `echo "in "` のようなケースで末尾のスペースが除かれてしまう
+  - 原因: 

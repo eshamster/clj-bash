@@ -7,9 +7,12 @@
 (defn- add-prefix [prefix rest]
   (concat (list prefix) rest))
 
-;; TODO: enable to accept numbers in rest (Note: Ex. (name 1) raises error)
 (defn- parse-command [command rest]
-  (add-prefix :command (concat (list command) (map name rest))))
+  (add-prefix :command (concat (list command)
+                               (map #(if (number? %)
+                                       (str %)
+                                       (name %))
+                                    rest))))
 
 (defn- cover-by-eval [seq]
   (add-prefix :eval seq))
@@ -32,5 +35,5 @@
       (case (name kind)
         "for" (parse-for (first args) (second args) (nthrest args 2))))))
 
-(defn parse-main [body]
-  (map parse-line body))
+(defn parse-main [body-lst]
+  (map parse-line body-lst))

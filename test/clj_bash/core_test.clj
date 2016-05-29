@@ -4,6 +4,7 @@
             [clj-bash.test-utils :refer :all]))
 
 (deftest a-test
-  (test-bash sample
-             (:echo test1)
-             (:echo test2)))
+  (test-bash simple-execution
+             (:echo 0)
+             (:echo -n "in _")
+             (:echo test)))
