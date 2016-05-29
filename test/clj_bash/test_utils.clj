@@ -45,8 +45,11 @@
 
 (defn execute-shell [shell-path output-path]
   (with-open [fout (io/writer output-path :append nil)]
-    (sh/with-programs [bash]
-      (.write fout (bash "-f" shell-path)))))
+    (try
+      (sh/with-programs [bash]
+        (.write fout (bash "-f" shell-path)))
+      (catch Exception e
+        (.write fout (.getMessage e))))))
 
 (defn- diff-files [path1 path2]
   (sh/with-programs [diff]
