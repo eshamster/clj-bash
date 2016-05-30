@@ -24,12 +24,16 @@
 (defn- str-array [expr]
   (join " " expr))
 
+(defn- str-pipe [expr]
+  (join " | " (map str-line expr)))
+
 (defn- str-line [line]
   (match [line]
          [([:array & expr] :seq)] (str-array expr)
          [([:command & expr] :seq)] (str-command expr)
          [([:eval & expr] :seq)] (str-eval expr)
-         [([:for & expr] :seq)] (str-for expr)))
+         [([:for & expr] :seq)] (str-for expr)
+         [([:pipe & expr] :seq)] (str-pipe expr)))
 
 (defn str-main [tree]
   (loop [target tree

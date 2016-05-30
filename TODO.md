@@ -13,7 +13,6 @@
   - relative path
 - 未分類
   - function
-  - pipe
   - set
 
 # fixes

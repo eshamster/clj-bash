@@ -15,4 +15,8 @@
   (test-bash for-nested
              (for i [0 4 3]
                   (for j (:seq 0 3)
-                       (:echo "$i, $j")))))
+                       (:echo "$i, $j"))))
+  (test-bash pipe
+             (-> (:echo testabcdefg)
+                 (:sed -e "s/es/aa/")
+                 (:head -c 4))))

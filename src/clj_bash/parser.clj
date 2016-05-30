@@ -27,13 +27,17 @@
    :for (concat (list var (parse-array array))
                 (map parse-line rest))))
 
+(defn- parse-pipe [exprs]
+  `(:pipe ~@(map parse-line exprs)))
+
 (defn- parse-line [line]
   (let [kind (first line)
         args (rest line)]
     (if (keyword? kind)
       (parse-command (name kind) args)
       (case (name kind)
-        "for" (parse-for (first args) (second args) (nthrest args 2))))))
+        "for" (parse-for (first args) (second args) (nthrest args 2))
+        "->" (parse-pipe args)))))
 
 (defn parse-main [body-lst]
   (map parse-line body-lst))
