@@ -10,13 +10,10 @@
   - exportへの追記 (Ex. `export PATH=/usr/local/bin:${PATH}`)
   - to-stdout
   - to-stderr
-  - relative path
+  - relative path ($(dirname ${0}))
 - 未分類
   - function
-  - pipe
   - set
+  - Ex. "a$(echo b)c" -> "abc"
 
 # fixes
-
-- `echo "in "` のようなケースで末尾のスペースが除かれてしまう
-  - 原因: 
