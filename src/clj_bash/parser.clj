@@ -10,12 +10,15 @@
 (defn- cover-by-eval [seq]
   (add-prefix :eval seq))
 
+(defn- parse-string [string]
+  (add-prefix :string (list string)))
+
 (defn- parse-arg [arg]
   (cond
     (list? arg) (cover-by-eval (parse-line arg))
     (vector? arg) (add-prefix :array arg)
     (number? arg) (str arg)
-    (string? arg) (str arg)
+    (string? arg) (parse-string arg)
     (keyword? arg) (name arg)
     (symbol? arg) (name arg)
     :else (throw (Exception.

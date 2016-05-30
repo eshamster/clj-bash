@@ -6,7 +6,7 @@
 (deftest a-test
   (test-bash simple-execution
              (:echo 0)
-             (:echo -n "in _")
+             (:echo -n " in ")
              (:echo test))
   (test-bash nested-execution
              (:echo 12 (:echo 34)))

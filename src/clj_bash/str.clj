@@ -25,6 +25,12 @@
 (defn- str-pipe [expr]
   (join " | " (map str-line expr)))
 
+(defn- str-string [expr]
+  (when (not (and (= (count expr) 1)
+                  (string? (first expr))))
+    (throw (Exception. (str "Invalid string: " expr))))
+  (str "\"" (first expr) "\""))
+
 (defn- str-element [element]
   (cond
     (list? element) (str-line element)
@@ -41,7 +47,8 @@
          [([:command & expr] :seq)] (str-command expr)
          [([:eval & expr] :seq)] (str-eval expr)
          [([:for & expr] :seq)] (str-for expr)
-         [([:pipe & expr] :seq)] (str-pipe expr)))
+         [([:pipe & expr] :seq)] (str-pipe expr)
+         [([:string & expr] :seq)] (str-string expr)))
 
 (defn str-main [tree]
   (loop [target tree
