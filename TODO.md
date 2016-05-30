@@ -14,6 +14,7 @@
 - 未分類
   - function
   - set
+  - Ex. "a$(echo b)c" -> "abc"
 
 # fixes
 

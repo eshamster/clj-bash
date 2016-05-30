@@ -8,6 +8,8 @@
              (:echo 0)
              (:echo -n "in _")
              (:echo test))
+  (test-bash nested-execution
+             (:echo 12 (:echo 34)))
   (test-bash for-array
              (for i [0 4 3 5] (:echo $i)))
   (test-bash for-expression

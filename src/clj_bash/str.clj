@@ -5,12 +5,10 @@
 
 (declare str-main)
 (declare str-line)
+(declare str-element)
 
 (defn- str-command [expr]
-  (join " " (map #(if (list? %)
-                    (str-line %)
-                    %)
-                 expr)))
+  (join " " (map str-element expr)))
 
 (defn- str-eval [expr]
   (str "$(" (str-line expr) ")"))
@@ -22,10 +20,20 @@
 
 ;; TODO: needs recur for such a case as (:array 0 (:eval :expr "0 + 5") 2)
 (defn- str-array [expr]
-  (join " " expr))
+  (join " " (map str-element expr)))
 
 (defn- str-pipe [expr]
   (join " | " (map str-line expr)))
+
+(defn- str-element [element]
+  (cond
+    (list? element) (str-line element)
+    (string? element) element
+    (number? element) (str element)
+    (instance? clojure.lang.LazySeq element) (str-line element)
+    :else (throw (Exception.
+                  (format "not recognized element type: %s (%s)"
+                          element (type element))))))
 
 (defn- str-line [line]
   (match [line]
