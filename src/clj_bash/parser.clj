@@ -34,6 +34,9 @@
    :for (concat (list var (parse-arg array))
                 (map parse-line rest))))
 
+(defn- parse-set-value [name value]
+  (add-prefix :set (list name (parse-arg value))))
+
 (defn- parse-pipe [exprs]
   `(:pipe ~@(map parse-line exprs)))
 
@@ -44,6 +47,7 @@
       (parse-command (name kind) args)
       (case (name kind)
         "for" (parse-for (first args) (second args) (nthrest args 2))
+        "set" (parse-set-value (first args) (second args))
         "->" (parse-pipe args)))))
 
 (defn parse-main [body-lst]

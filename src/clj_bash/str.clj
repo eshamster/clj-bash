@@ -25,6 +25,11 @@
 (defn- str-pipe [expr]
   (join " | " (map str-line expr)))
 
+(defn- str-set-value [expr]
+  (when (not (and (= (count expr) 2)))
+    (throw (Exception. (str "Invalid set-value: " expr))))
+  (str (first expr) "=" (str-element (second expr))))
+
 (defn- str-string [expr]
   (when (not (and (= (count expr) 1)
                   (string? (first expr))))
@@ -48,6 +53,7 @@
          [([:eval & expr] :seq)] (str-eval expr)
          [([:for & expr] :seq)] (str-for expr)
          [([:pipe & expr] :seq)] (str-pipe expr)
+         [([:set & expr] :seq)] (str-set-value expr)
          [([:string & expr] :seq)] (str-string expr)))
 
 (defn str-main [tree]

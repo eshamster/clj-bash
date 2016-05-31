@@ -12,8 +12,13 @@
   - to-stderr
   - relative path ($(dirname ${0}))
 - 未分類
+  - subprocess
   - function
   - set
   - Ex. "a$(echo b)c" -> "abc"
 
 # fixes
+
+# improve
+
+- 関数内の変数をlocal宣言
