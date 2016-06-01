@@ -104,6 +104,6 @@ compare: expected & output
        (create-shell shell-path# ~@body)
        (execute-shell shell-path# output-path#)
        (let [diff# (compare-with-expected output-path# expected-path#)]
-         (when (not (= "" diff#))
+         (when (not= "" diff#)
            (output-detail ~(str test-name) diff# '~body))
          (is (=  "" diff#))))))

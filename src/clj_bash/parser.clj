@@ -38,7 +38,7 @@
   (loop [rest-args args
          arg-index 1
          result nil]
-    (if (not (empty? rest-args))
+    (if-not (empty? rest-args)
       (let [var-declare (add-prefix
                          :local
                          (parse-set-value (first rest-args)
