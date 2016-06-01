@@ -6,6 +6,7 @@
 (declare str-main)
 (declare str-line)
 (declare str-element)
+(declare str-set-value)
 
 (defn- str-command [expr]
   (join " " (map str-element expr)))
@@ -18,9 +19,19 @@
         (str-main (nthrest expr 2))
         "done"))
 
+(defn- str-function [expr]
+  (list (str "function " (first expr) "() {")
+        (str-main (rest expr))
+        "}"))
+
 ;; TODO: needs recur for such a case as (:array 0 (:eval :expr "0 + 5") 2)
 (defn- str-array [expr]
   (join " " (map str-element expr)))
+
+(defn- str-local [expr]
+  (when (not (= (first expr) :set))
+    (throw (Exception. (str "Invalid str-local (the first of expr should be the set-value clause): " expr))))
+  (str "local " (str-set-value (rest expr))))
 
 (defn- str-pipe [expr]
   (join " | " (map str-line expr)))
@@ -31,8 +42,7 @@
   (str (first expr) "=" (str-element (second expr))))
 
 (defn- str-string [expr]
-  (when (not (and (= (count expr) 1)
-                  (string? (first expr))))
+  (when (not (and (= (count expr) 1)))
     (throw (Exception. (str "Invalid string: " expr))))
   (str "\"" (first expr) "\""))
 
@@ -51,7 +61,9 @@
          [([:array & expr] :seq)] (str-array expr)
          [([:command & expr] :seq)] (str-command expr)
          [([:eval & expr] :seq)] (str-eval expr)
+         [([:local & expr] :seq)] (str-local expr)
          [([:for & expr] :seq)] (str-for expr)
+         [([:function & expr] :seq)] (str-function expr)
          [([:pipe & expr] :seq)] (str-pipe expr)
          [([:set & expr] :seq)] (str-set-value expr)
          [([:string & expr] :seq)] (str-string expr)))

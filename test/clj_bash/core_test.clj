@@ -25,4 +25,8 @@
   (test-bash set-value
              (set a 0)
              (set b (:expr $a + 1))
-             (:echo "$a, $b")))
+             (:echo "$a, $b"))
+  (test-bash defn
+             (defn add [x y]
+               (:expr $x + $y))
+             (:add 10 20)))

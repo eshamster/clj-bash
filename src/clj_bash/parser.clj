@@ -3,6 +3,8 @@
 (use '[clojure.string :only [join]])
 
 (declare parse-line)
+(declare parse-main)
+(declare parse-set-value)
 
 (defn- add-prefix [prefix rest]
   (concat (list prefix) rest))
@@ -29,6 +31,29 @@
   (add-prefix :command (concat (list command)
                                (map parse-arg rest))))
 
+
+;; Note: For generality, it is probably better to move
+;; this parsing process to clj-bash.str
+(defn- parse-defn-args [args]
+  (loop [rest-args args
+         arg-index 1
+         result nil]
+    (if (not (empty? rest-args))
+      (let [var-declare (add-prefix
+                         :local
+                         (parse-set-value (first rest-args)
+                                          (format "$%d" arg-index)))]
+        (recur (rest rest-args)
+               (+ arg-index 1)
+               (cons var-declare result)))
+      (reverse result))))
+
+(defn- parse-defn [name args body]
+  (add-prefix :function
+              (concat (list name)
+                      (parse-defn-args args)
+                      (parse-main body))))
+
 (defn- parse-for [var array rest]
   (add-prefix
    :for (concat (list var (parse-arg array))
@@ -46,6 +71,7 @@
     (if (keyword? kind)
       (parse-command (name kind) args)
       (case (name kind)
+        "defn" (parse-defn (first args) (second args) (nthrest args 2))
         "for" (parse-for (first args) (second args) (nthrest args 2))
         "set" (parse-set-value (first args) (second args))
         "->" (parse-pipe args)))))
