@@ -80,21 +80,6 @@
         (.write fout (str str-list))))))
 
 ;; Main 
-" 
-pre:
-  output, expectedの対象ファイルを削除
-execute:
-  パースした結果をshell/*.shに出力 + 実行属性付与
-  実行して結果をoutput/*.txtに出力
-
-<TODO:>
-compare: expected & output
-  expectedがない場合、diffがあった場合と同じ扱い＋メッセージ
-  expectedがある場合、比較して ->
-    diffがなければtrue
-    diffがあればNG, .txt.diffと.txt.detailを出力, false
-      detail -> parser, str-mainの結果
-"
 (defmacro test-bash [test-name & body]
   `(testing ~(str "test clj-bash: " test-name)
      (clean-old-results ~(str test-name))
@@ -104,6 +89,6 @@ compare: expected & output
        (create-shell shell-path# ~@body)
        (execute-shell shell-path# output-path#)
        (let [diff# (compare-with-expected output-path# expected-path#)]
-         (when (not (= "" diff#))
+         (when (not= "" diff#)
            (output-detail ~(str test-name) diff# '~body))
          (is (=  "" diff#))))))

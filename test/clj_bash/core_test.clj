@@ -21,4 +21,12 @@
   (test-bash pipe
              (-> (:echo testabcdefg)
                  (:sed -e "s/es/aa/")
-                 (:head -c 4))))
+                 (:head -c 4)))
+  (test-bash set-value
+             (set a 0)
+             (set b (:expr $a + 1))
+             (:echo "$a, $b"))
+  (test-bash defn
+             (defn add [x y]
+               (:expr $x + $y))
+             (:add 10 20)))
