@@ -24,10 +24,16 @@
         form))
     form))
 
-(defmacro def-cb-macro [name args body]
-  `(reset! cb-macro-table
-           (assoc @cb-macro-table
+(defn- register-cb-macro-to [table name args body]
+  `(reset! ~table
+           (assoc @~table
                   ~(str name)
                   (fn [args-list#]
                     (let [~args args-list#]
                       ~body)))))
+
+(defn- register-cb-macro [name args body]
+  (register-cb-macro-to 'cb-macro-table name args body))
+
+(defmacro def-cb-macro [name args body]
+  (register-cb-macro name args body))
