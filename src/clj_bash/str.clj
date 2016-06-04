@@ -89,19 +89,18 @@
                   (format "not recognized element type: %s (%s)"
                           element (type element))))))
 
-;; TODO: refactor by using match-seq
 (defn- str-line [line]
-  (match [line]
-         [([:array & expr] :seq)] (str-array expr)
-         [([:command & expr] :seq)] (str-command expr)
-         [([:cond & expr] :seq)] (str-cond expr)
-         [([:eval & expr] :seq)] (str-eval expr)
-         [([:local & expr] :seq)] (str-local expr)
-         [([:for & expr] :seq)] (str-for expr)
-         [([:function & expr] :seq)] (str-function expr)
-         [([:pipe & expr] :seq)] (str-pipe expr)
-         [([:set & expr] :seq)] (str-set-value expr)
-         [([:string & expr] :seq)] (str-string expr)))
+  (match-seq line
+             [:array & expr] (str-array expr)
+             [:command & expr] (str-command expr)
+             [:cond & expr] (str-cond expr)
+             [:eval & expr] (str-eval expr)
+             [:local & expr] (str-local expr)
+             [:for & expr] (str-for expr)
+             [:function & expr] (str-function expr)
+             [:pipe & expr] (str-pipe expr)
+             [:set & expr] (str-set-value expr)
+             [:string & expr] (str-string expr)))
 
 (defn str-main [tree]
   (loop [target tree
