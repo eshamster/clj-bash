@@ -8,8 +8,41 @@
 (declare str-element)
 (declare str-set-value)
 
+;; TODO: make a utils namespace and move this macro there
+"Example.
+(match-seq target
+  [:abc & expr] (some-func expr)
+  [:bcd a b] (some-func2 a b))"
+(defmacro match-seq [target & body]
+  (if-not (even? (count body))
+    (throw (IllegalArgumentException. "a body of match-seq requires an even number of forms")))
+  `(match [~target]
+          ~@(apply concat
+                   (map (fn [pair#]
+                          `([(~(first pair#) :seq)] ~(second pair#)))
+                        (partition 2 body)))))
+
 (defn- str-command [expr]
   (join " " (map str-element expr)))
+
+(defn- str-cond [expr]
+  (letfn [(str-if [head condition body]
+            (list (str head
+                       " [ "
+                       (join " " (map str-element (rest condition)))
+                       " ]; then")
+                  (list (str-line body))))
+          (str-else [body]
+            (list "else"
+                  (list (str-line body))))]
+    (concat
+     (mapcat #(match-seq
+               %
+               [:if condition body] (str-if "if" condition body)
+               [:elif condition body] (str-if "elif" condition body)
+               [:else body] (str-else body))
+             expr)
+     '("fi"))))
 
 (defn- str-eval [expr]
   (str "$(" (str-line expr) ")"))
@@ -56,10 +89,12 @@
                   (format "not recognized element type: %s (%s)"
                           element (type element))))))
 
+;; TODO: refactor by using match-seq
 (defn- str-line [line]
   (match [line]
          [([:array & expr] :seq)] (str-array expr)
          [([:command & expr] :seq)] (str-command expr)
+         [([:cond & expr] :seq)] (str-cond expr)
          [([:eval & expr] :seq)] (str-eval expr)
          [([:local & expr] :seq)] (str-local expr)
          [([:for & expr] :seq)] (str-for expr)
@@ -74,7 +109,7 @@
     (if-not (empty? target)
       (recur (rest target)
              (let [line (str-line (first target)) ]
-               (if (list? line)
+               (if (seq? line)
                  (concat (reverse line) result)
                  (cons line result))))
       (reverse result))))

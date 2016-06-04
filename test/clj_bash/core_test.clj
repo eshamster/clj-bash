@@ -30,7 +30,18 @@
   (test-bash defn
              (defn add [x y]
                (:expr $x + $y))
-             (:add 10 20)))
+             (:add 10 20))
+  (test-bash cond
+             (defn test-cond [a]
+               (cond ($a -gt 0) (:echo 1)
+                     ($a -lt 0) (:echo -1)
+                     :else (:echo 0)))
+             (:test-cond 10)
+             (:test-cond -10)
+             (:test-cond 0)
+             (cond (0 -eq 0) (:echo 100))
+             (cond (0 -ne 0) (:echo 0)
+                   :else (:echo -100))))
 
 (deftest cb-macro-test
   (init-cb-macro-table)

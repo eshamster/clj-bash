@@ -32,6 +32,38 @@
   (add-prefix :command (concat (list command)
                                (map parse-arg rest))))
 
+;; --- cond --- ;;
+
+(defn- check-cond-body [body]
+  (if-not (even? (count body))
+    (throw (IllegalArgumentException. "cond requires an even number of forms"))))
+
+(defn- process-cond-line [now-result condition expr]
+  (when-not (seq? expr)
+    (throw (IllegalArgumentException.
+            (str "The process of cond should be a list: " expr))))
+  (let [parsed-expr (list (parse-line expr))]
+    (if (= condition :else)
+      (add-prefix :else parsed-expr)
+      (let [prefix (if (nil? now-result) :if :elif)
+            test-clause (add-prefix :test
+                                    (map parse-arg condition))]
+        (add-prefix prefix (cons test-clause parsed-expr))))))
+
+(defn- parse-cond [body]
+  (check-cond-body body)
+  (let [grouped-body (partition 2 body)]
+    (loop [result nil
+           line (first grouped-body)
+           rest-body (rest grouped-body)]
+      (if-not (nil? line)
+        (recur (cons (process-cond-line result (first line) (second line))
+                     result)
+               (first rest-body)
+               (rest rest-body))
+        (add-prefix :cond (reverse result))))))
+
+;; --- defn --- ;;
 
 ;; Note: For generality, it is probably better to move
 ;; this parsing process to clj-bash.str
@@ -55,6 +87,8 @@
                       (parse-defn-args args)
                       (parse-main body))))
 
+;; --- for --- ;;
+
 (defn- parse-for [var array rest]
   (add-prefix
    :for (concat (list var (parse-arg array))
@@ -77,6 +111,7 @@
     (if (keyword? kind)
       (parse-command (name kind) args)
       (case (name kind)
+        "cond" (parse-cond args)
         "defn" (parse-defn (first args) (second args) (nthrest args 2))
         "for" (parse-for (first args) (second args) (nthrest args 2))
         "set" (parse-set-value (first args) (second args))

@@ -4,7 +4,8 @@
   - if
   - while
   - case
-  - cond
+  - do
+    - condにもdoを利用したテストを追加
   - EOF
 - Syntax Sugar
   - trap
@@ -23,3 +24,6 @@
 
 - cb-macro
   - with-initial-cb-macro-table
+- cond
+  - 条件式が決め打ちtestコマンドになっているが、
+    任意のコマンドを受け取れるようにする
