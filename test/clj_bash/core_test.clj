@@ -47,7 +47,6 @@
   (init-cb-macro-table)
   (def-cb-macro test-addr [a b]
     `(:expr ~a + ~b))
-  (println (cb-macroexpand '(test-addr 10 20)))
   (test-bash cb-macro
              (test-addr 10 20)
              (:echo a (test-addr 20 50))
