@@ -21,4 +21,5 @@
 
 # improve
 
-- with-initial-cb-macro-table
+- cb-macro
+  - with-initial-cb-macro-table

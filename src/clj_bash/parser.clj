@@ -1,6 +1,7 @@
 (ns clj-bash.parser)
 
-(use '[clojure.string :only [join]])
+(use '[clojure.string :only [join]]
+     '[clj-bash.cb-macro :only [cb-macro? cb-macroexpand]])
 
 (declare parse-line)
 (declare parse-main)
@@ -65,6 +66,11 @@
 (defn- parse-pipe [exprs]
   `(:pipe ~@(map parse-line exprs)))
 
+(defn- try-cb-macro [line]
+  (if (cb-macro? (first line))
+    (cb-macroexpand line)
+    (throw (Exception. (str (first line) " is not a cb-macro")))))
+
 (defn- parse-line [line]
   (let [kind (first line)
         args (rest line)]
@@ -74,7 +80,10 @@
         "defn" (parse-defn (first args) (second args) (nthrest args 2))
         "for" (parse-for (first args) (second args) (nthrest args 2))
         "set" (parse-set-value (first args) (second args))
-        "->" (parse-pipe args)))))
+        "->" (parse-pipe args)
+        (try (parse-line (try-cb-macro line))
+             (catch Exception e
+               (str (name kind) " is not a reserved keyword or a cb-macro")))))))
 
 (defn parse-main [body-lst]
   (map parse-line body-lst))

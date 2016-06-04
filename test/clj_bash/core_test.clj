@@ -1,6 +1,7 @@
 (ns clj-bash.core-test
   (:require [clojure.test :refer :all]
             [clj-bash.core :refer :all]
+            [clj-bash.cb-macro :refer :all]
             [clj-bash.test-utils :refer :all]))
 
 (deftest a-test
@@ -30,3 +31,14 @@
              (defn add [x y]
                (:expr $x + $y))
              (:add 10 20)))
+
+(deftest cb-macro-test
+  (init-cb-macro-table)
+  (def-cb-macro test-addr [a b]
+    `(:expr ~a + ~b))
+  (println (cb-macroexpand '(test-addr 10 20)))
+  (test-bash cb-macro
+             (test-addr 10 20)
+             (:echo a (test-addr 20 50))
+             (test-addr (test-addr 1 2) 3))
+  (init-cb-macro-table))
