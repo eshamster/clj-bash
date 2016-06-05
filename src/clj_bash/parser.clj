@@ -105,6 +105,7 @@
     (cb-macroexpand line)
     (throw (Exception. (str (first line) " is not a cb-macro")))))
 
+;; TODO: refactor by using match
 (defn- parse-line [line]
   (let [kind (first line)
         args (rest line)]

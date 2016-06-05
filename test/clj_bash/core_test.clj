@@ -52,3 +52,14 @@
              (:echo a (test-addr 20 50))
              (test-addr (test-addr 1 2) 3))
   (init-cb-macro-table))
+
+(deftest default-cb-macros-test
+  (test-bash if
+             (defn test-if [x]
+               (if ($x -gt 0)
+                 (:echo 100)
+                 (:echo -100))
+               (if ($x -lt 0)
+                 (:echo -99)))
+             (:test-if 10)
+             (:test-if -10)))
