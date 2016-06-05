@@ -22,19 +22,35 @@
                           `([(~(first pair#) :seq)] ~(second pair#)))
                         (partition 2 body)))))
 
+;; Ex. "[" ("str") "]" -> "[str]"
+;; Ex. "[" ("do" ("a" "b") "done") "]" -> ("[do" ("a" "b") "done]")
+(defn wrap-str-body [left body right]
+  (when-not (and (string? left)
+                 (string? right))
+    (throw (Exception. "left and right should be strings")))
+  (when-not (and (seq? body)
+                 (string? (first body))
+                 (string? (last body)))
+    (throw (Exception. "body should be a list and first and last of it should be strings")))
+  (if (= (count body) 1)
+    (list (str left (first body) right))
+    `(~(str left (first body))
+      ~@(rest (butlast body))
+      ~(str (last body) right))))
+
 (defn- str-command [expr]
-  (join " " (map str-element expr)))
+  (list (join " " (mapcat str-element expr))))
 
 (defn- str-cond [expr]
   (letfn [(str-if [head condition body]
             (list (str head
                        " [ "
-                       (join " " (map str-element (rest condition)))
+                       (join " " (mapcat str-element (rest condition)))
                        " ]; then")
-                  (list (str-line body))))
+                  (str-line body)))
           (str-else [body]
             (list "else"
-                  (list (str-line body))))]
+                  (str-line body)))]
     (concat
      (mapcat #(match-seq
                %
@@ -44,13 +60,16 @@
              expr)
      '("fi"))))
 
+;; TODO: test such a case as "a=$(for i in $(seq 0 2) ; do echo ${i}; done)"
 (defn- str-eval [expr]
-  (str "$(" (str-line expr) ")"))
+  (wrap-str-body "$(" (str-line expr) ")"))
 
 (defn- str-for [expr]
-  (list (str "for " (first expr) " in " (str-line (second expr)) "; do")
-        (str-main (nthrest expr 2))
-        "done"))
+  `(~@(wrap-str-body (str "for " (first expr) " in ")
+                     (str-line (second expr))
+                     "; do")
+    ~(str-main (nthrest expr 2))
+    "done"))
 
 (defn- str-function [expr]
   (list (str "function " (first expr) "() {")
@@ -59,31 +78,35 @@
 
 ;; TODO: needs recur for such a case as (:array 0 (:eval :expr "0 + 5") 2)
 (defn- str-array [expr]
-  (join " " (map str-element expr)))
+  (list (join " " (mapcat str-element expr))))
 
 (defn- str-local [expr]
   (when (not= (first expr) :set)
     (throw (Exception. (str "Invalid str-local (the first of expr should be the set-value clause): " expr))))
-  (str "local " (str-set-value (rest expr))))
+  (wrap-str-body "local " (str-set-value (rest expr)) ""))
 
+
+;; TODO: Fix: this cannot correctory process nested form
 (defn- str-pipe [expr]
-  (join " | " (map str-line expr)))
+  (list (join " | " (mapcat str-line expr))))
 
 (defn- str-set-value [expr]
   (when (not= (count expr) 2)
     (throw (Exception. (str "Invalid set-value: " expr))))
-  (str (first expr) "=" (str-element (second expr))))
+  (wrap-str-body (str (first expr) "=")
+                 (str-element (second expr))
+                 ""))
 
 (defn- str-string [expr]
   (when (not= (count expr) 1)
     (throw (Exception. (str "Invalid string: " expr))))
-  (str "\"" (first expr) "\""))
+  (wrap-str-body "\"" expr "\""))
 
 (defn- str-element [element]
   (cond
     (list? element) (str-line element)
-    (string? element) element
-    (number? element) (str element)
+    (string? element) (list element)
+    (number? element) (list (str element))
     (instance? clojure.lang.LazySeq element) (str-line element)
     :else (throw (Exception.
                   (format "not recognized element type: %s (%s)"
@@ -110,5 +133,5 @@
              (let [line (str-line (first target)) ]
                (if (seq? line)
                  (concat (reverse line) result)
-                 (cons line result))))
+                 (throw (Exception. (format "str-line should be return a seq: %s" line))))))
       (reverse result))))

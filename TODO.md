@@ -14,6 +14,7 @@
   - relative path ($(dirname ${0}))
   - when-err
 - 未分類
+  - comment
   - subprocess
   - Ex. "a$(echo b)c" -> "abc"
 
