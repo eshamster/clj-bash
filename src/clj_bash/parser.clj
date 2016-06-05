@@ -98,7 +98,7 @@
   (add-prefix :set (list name (parse-arg value))))
 
 (defn- parse-pipe [exprs]
-  `(:pipe ~@(map parse-line exprs)))
+  (add-prefix :pipe (map parse-line exprs)))
 
 (defn- try-cb-macro [line]
   (if (cb-macro? (first line))
