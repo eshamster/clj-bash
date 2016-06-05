@@ -1,10 +1,12 @@
-(ns clj-bash.core)
+(ns clj-bash.core
+  (:require [clj-bash.default-cb-macros :refer :all]))
 
 (use '[clj-bash.parser :only [parse-main]])
 (use '[clj-bash.str :only [str-main]])
 (use '[clj-bash.pprint :only [pprint-tree]])
 (use 'clojure.java.io)
 
+;; TODO: remove debug codes (target, -main)
 (def target '((:cd test)
               (:ls .)
               (for a (:ls ..)

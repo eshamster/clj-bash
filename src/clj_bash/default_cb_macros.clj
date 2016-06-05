@@ -1,5 +1,5 @@
 (ns clj-bash.default-cb-macros
-  (:require [clj-bash.cb-macro :refere :all]))
+  (:require [clj-bash.cb-macro :refer :all]))
 
 ;; TODO: implement
 (def-cb-macro-as-default if [condition expr]
