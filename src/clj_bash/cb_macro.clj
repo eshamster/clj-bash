@@ -1,9 +1,10 @@
 (ns clj-bash.cb-macro)
 
 (def cb-macro-table (atom {}))
+(def default-cb-macro-table (atom {}))
 
 (defn init-cb-macro-table []
-  (reset! cb-macro-table {}))
+  (reset! cb-macro-table @default-cb-macro-table))
 
 (defn- get-cb-macro-func [symbol]
   (get @cb-macro-table (name symbol)))
@@ -35,5 +36,13 @@
 (defn- register-cb-macro [name args body]
   (register-cb-macro-to 'cb-macro-table name args body))
 
+(defn- register-cb-macro-as-default [name args body]
+  (register-cb-macro-to 'cb-macro-table name args body)
+  (register-cb-macro-to 'default-cb-macro-table name args body))
+
 (defmacro def-cb-macro [name args body]
   (register-cb-macro name args body))
+
+(defmacro def-cb-macro-as-default [name args body]
+  `(do ~(register-cb-macro name args body)
+       ~(register-cb-macro-as-default name args body)))

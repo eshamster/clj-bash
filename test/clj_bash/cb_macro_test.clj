@@ -8,6 +8,8 @@
 
 (deftest a-test
   (init-cb-macro-table)
+  (testing "test if the default cb-macro remains after init-cb-macro-table"
+    (is (cb-macro? 'if)))
   (testing "test simple registering and expanding"
     (check-not-expanded '(abc 0 3))
     (is (not (cb-macro? 'abc)))
