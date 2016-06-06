@@ -22,15 +22,20 @@
                           `([(~(first pair#) :seq)] ~(second pair#)))
                         (partition 2 body)))))
 
+;; str-body is defined by this checking function
+;; Ex. ("test"), ("a" ("b" "c") "d")
+(defn str-body? [list]
+  (and (seq? list)
+       (string? (first list))
+       (string? (last list))))
+
 ;; Ex. "[" ("str") "]" -> "[str]"
 ;; Ex. "[" ("do" ("a" "b") "done") "]" -> ("[do" ("a" "b") "done]")
 (defn wrap-str-body [left body right]
   (when-not (and (string? left)
                  (string? right))
     (throw (Exception. "left and right should be strings")))
-  (when-not (and (seq? body)
-                 (string? (first body))
-                 (string? (last body)))
+  (when-not (str-body? body)
     (throw (Exception. "body should be a list and first and last of it should be strings")))
   (if (= (count body) 1)
     (list (str left (first body) right))
@@ -131,7 +136,7 @@
     (if-not (empty? target)
       (recur (rest target)
              (let [line (str-line (first target)) ]
-               (if (seq? line)
+               (if (str-body? line)
                  (concat (reverse line) result)
-                 (throw (Exception. (format "str-line should be return a seq: %s" line))))))
+                 (throw (Exception. (format "str-line should be return a str-body: %s" line))))))
       (reverse result))))
