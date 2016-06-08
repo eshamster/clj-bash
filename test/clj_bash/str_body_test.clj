@@ -4,10 +4,12 @@
 
 (deftest str-body?-test
   (are [lst] (str-body? lst)
+    "test"
     '("test")
     '("test" "test2")
     '("test" ("test1" 0) "test2"))
   (are [lst] (not (str-body? lst))
+    0
     '(0)
     '("test" ("test2"))
     '(("test2") "test")))

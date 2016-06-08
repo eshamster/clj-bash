@@ -1,14 +1,16 @@
 (ns clj-bash.str-body)
 
 ;; str-body is defined by this checking function
-;; Ex. ("test"), ("a" ("b" "c") "d")
-(defn str-body? [list]
-  (and (seq? list)
-       (string? (first list))
-       (string? (last list))))
+;; Ex. "test", ("test"), ("a" "b" "c"), ("a" ("b" "c") "d")
+(defn str-body? [elem]
+  (or (string? elem)
+      (and (seq? elem)
+           (string? (first elem))
+           (string? (last elem)))))
 
 ;; Ex. "[" ("str") "]" -> ("[str]")
 ;; Ex. "[" ("do" ("a" "b") "done") "]" -> ("[do" ("a" "b") "done]")
+;; TODO: Fix because the definition of str-body is changed to accept a string 
 (defn wrap-str-body [left body right]
   (when-not (and (string? left)
                  (string? right))
