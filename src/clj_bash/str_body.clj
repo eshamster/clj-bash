@@ -7,7 +7,7 @@
        (string? (first list))
        (string? (last list))))
 
-;; Ex. "[" ("str") "]" -> "[str]"
+;; Ex. "[" ("str") "]" -> ("[str]")
 ;; Ex. "[" ("do" ("a" "b") "done") "]" -> ("[do" ("a" "b") "done]")
 (defn wrap-str-body [left body right]
   (when-not (and (string? left)
