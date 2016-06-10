@@ -31,6 +31,7 @@
   (are [left body right expected]
       (= (wrap-str-body left body right)
          expected)
+    "(" "abc" ")"         "(abc)"
     "(" '("abc") ")"      '("(abc)")
     "([" '("abc") "])"    '("([abc])")
     "(" '("a" "b") ")"    '("(a" "b)")

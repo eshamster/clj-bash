@@ -39,7 +39,6 @@
 
 ;; Ex. "[" ("str") "]" -> ("[str]")
 ;; Ex. "[" ("do" ("a" "b") "done") "]" -> ("[do" ("a" "b") "done]")
-;; TODO: Fix because the definition of str-body is changed to accept a string 
 (defn wrap-str-body [left body right]
   (when-not (and (string? left)
                  (string? right))
@@ -47,8 +46,4 @@
   (when-not (str-body? body)
     (throw (IllegalArgumentException.
             "body should be a list and first and last of it should be strings")))
-  (if (= (count body) 1)
-    (list (str left (first body) right))
-    `(~(str left (first body))
-      ~@(rest (butlast body))
-      ~(str (last body) right))))
+  (concat-str-body left body right))
