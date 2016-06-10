@@ -44,6 +44,5 @@
                  (string? right))
     (throw (IllegalArgumentException. "left and right should be strings")))
   (when-not (str-body? body)
-    (throw (IllegalArgumentException.
-            "body should be a list and first and last of it should be strings")))
+    (throw (IllegalArgumentException. "a body should be a list of str-body")))
   (concat-str-body left body right))
