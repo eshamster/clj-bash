@@ -46,3 +46,22 @@
   (when-not (str-body? body)
     (throw (IllegalArgumentException. "a body should be a list of str-body")))
   (concat-str-body left body right))
+
+(defn- join-list [delimiter lst]
+  (loop [result '()
+         head (first lst)
+         rest-lst (rest lst)]
+    (let [consed (cons head result)]
+      (if-not (empty? rest-lst)
+        (recur (cons delimiter consed)
+               (first rest-lst)
+               (rest rest-lst))
+        (reverse consed)))))
+
+(defn join-str-body [delimiter str-body-lst]
+  (when-not (string? delimiter)
+    (throw (IllegalArgumentException. "a delimiter should be a string")))
+  (when-not (every? str-body? str-body-lst))
+  (if-not (empty? str-body-lst)
+    (apply concat-str-body (join-list delimiter str-body-lst))
+    ""))

@@ -43,3 +43,20 @@
       1 '("abc") ")"
       "(" '("abc") 0
       "(" '(0 "abc") ")")))
+
+(deftest join-str-body-test
+  (are [args expected]
+      (= (join-str-body " | " args) expected)
+    '() ""
+    '("test") "test"
+    '("a" "b" "c") "a | b | c"
+    '("a" ("b") "c") '("a | b | c")
+    '("a" ("b" "c" "d") "e") '("a | b" "c" "d | e")
+    '(("for i in $(seq test); do" ("echo $i") "done") ("cat")) '("for i in $(seq test); do" ("echo $i") "done | cat"))
+  (testing "Illegal types"
+    (are [delimiter lst]
+        (thrown? IllegalArgumentException
+                 (join-str-body delimiter lst))
+      0 '("a")
+      "a" 0
+      "a" '("a" 1 "b"))))
