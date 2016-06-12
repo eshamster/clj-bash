@@ -60,3 +60,18 @@
       0 '("a")
       "a" 0
       "a" '("a" 1 "b"))))
+
+(deftest cons-str-body-test
+  (are [left str-body-lst expected]
+      (= (cons-str-body left str-body-lst) expected)
+    "a" '("b")            '("a" "b")
+    '("a" "b") '("c" "d") '("a" "b" "c" "d")
+    '("a" "b") '("c" ("d" "e")) '("a" "b" "c" ("d" "e"))
+    '("a" ("b") "c") '("d" "e") '("a" ("b") "c" "d" "e"))
+  (testing "Illegal Argument"
+    (are [left str-body-lst]
+        (thrown? IllegalArgumentException
+                 (cons-str-body left str-body-lst))
+      0 '("b")
+      "a" "b"
+      "a" '("b" 0))))

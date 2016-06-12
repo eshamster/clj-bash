@@ -65,3 +65,17 @@
   (if-not (empty? str-body-lst)
     (apply concat-str-body (join-list delimiter str-body-lst))
     ""))
+
+;; Ex. "a" ("b")           -> ("a" "b")
+;;     ("a" "b") ("c" "d") -> ("a" "b" "c" "d")
+;;     ("a" "b") ("c" ("d" "e")) -> ("a" "b" "c" ("d" "e"))
+;;     ("a" ("b") "c") ("d" "e") -> ("a" ("b") "c" "d" "e")
+(defn cons-str-body [left str-body-lst]
+  (when-not (str-body? left)
+    (throw (IllegalArgumentException. (format "a left should be a str-body: " left))))
+  (when-not (and (seq? str-body-lst)
+                 (every? str-body? str-body-lst))
+    (throw (IllegalArgumentException. (format "a str-body-lst should be a list of str-body: " str-body-lst))))
+  (if (string? left)
+    (cons left str-body-lst)
+    (concat left str-body-lst)))
