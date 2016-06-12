@@ -22,7 +22,9 @@
   (test-bash pipe
              (-> (:echo testabcdefg)
                  (:sed -e "s/es/aa/")
-                 (:head -c 4)))
+                 (:head -c 4))
+             (-> (for i [0 1 2] (:echo $i))
+                 (:cat)))
   (test-bash set-value
              (set a 0)
              (set b (:expr $a + 1))

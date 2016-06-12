@@ -70,10 +70,8 @@
     (throw (Exception. (str "Invalid str-local (the first of expr should be the set-value clause): " expr))))
   (wrap-str-body "local " (str-set-value (rest expr)) ""))
 
-
-;; TODO: Fix: this cannot correctory process nested form
 (defn- str-pipe [expr]
-  (list (join " | " (mapcat str-line expr))))
+  (join-str-body " | " (map str-line expr)))
 
 (defn- str-set-value [expr]
   (when (not= (count expr) 2)
