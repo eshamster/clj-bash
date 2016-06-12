@@ -108,13 +108,5 @@
              [:set & expr] (str-set-value expr)
              [:string & expr] (str-string expr)))
 
-(defn str-main [tree]
-  (loop [target tree
-         result nil]
-    (if-not (empty? target)
-      (recur (rest target)
-             (let [line (str-line (first target)) ]
-               (if (str-body? line)
-                 (concat (reverse line) result)
-                 (throw (Exception. (format "str-line should be return a str-body: %s" line))))))
-      (reverse result))))
+(defn str-main [parsed-tree]
+  (construct-str-body-lst parsed-tree str-line))

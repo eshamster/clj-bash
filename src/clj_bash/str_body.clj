@@ -70,6 +70,7 @@
 ;;     ("a" "b") ("c" "d") -> ("a" "b" "c" "d")
 ;;     ("a" "b") ("c" ("d" "e")) -> ("a" "b" "c" ("d" "e"))
 ;;     ("a" ("b") "c") ("d" "e") -> ("a" ("b") "c" "d" "e")
+;; Note: This is public for only test
 (defn cons-str-body [left str-body-lst]
   (when-not (str-body? left)
     (throw (IllegalArgumentException. (format "a left should be a str-body: " left))))
@@ -79,3 +80,18 @@
   (if (string? left)
     (cons left str-body-lst)
     (concat left str-body-lst)))
+
+;; Ex. (("a" ("ab") "b") "str1" ("c" "d") "str2")
+;;     -> ("a" ("ab") "b" "str1" "c" "d" "str2")
+(defn construct-str-body-lst [src-lst fn-make-str-body]
+  (loop [target src-lst
+         result '()]
+    (if-not (empty? target)
+      (recur (rest target)
+             (let [line (fn-make-str-body (first target)) ]
+               (if (str-body? line)
+                 (if (string? line)
+                   (cons-str-body line result)
+                   (cons-str-body (reverse line) result))
+                 (throw (Exception. (format "str-line should be return a str-body: %s" line))))))
+      (reverse result))))

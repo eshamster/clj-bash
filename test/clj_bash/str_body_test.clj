@@ -75,3 +75,17 @@
       0 '("b")
       "a" "b"
       "a" '("b" 0))))
+
+(deftest construct-str-body-lst-test
+  (testing "normal patterns"
+    (testing "concat strings"
+      (is (= (construct-str-body-lst '(1 2 3) str)
+             '("1" "2" "3"))))
+    (testing "concat lists"
+      (is (= (construct-str-body-lst '(("a" ("ab") "b") ("c" "d")) reverse)
+             '("b" ("ab") "a" "d" "c"))))
+    (testing "concat both strings and lists"
+      (is (= (construct-str-body-lst '(("a" ("ab") "b") "str1" ("c" "d") "str2") identity)
+             '("a" ("ab") "b" "str1" "c" "d" "str2"))))))
+
+(deftest reverse-str-body)
