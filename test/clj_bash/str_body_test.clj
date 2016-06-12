@@ -14,8 +14,8 @@
     '("test" ("test2"))
     '(("test2") "test")))
 
-(deftest concat-str-body-test
-  (are [args expected] (= (apply concat-str-body args) expected)
+(deftest unite-str-body-test
+  (are [args expected] (= (apply unite-str-body args) expected)
     '("test") "test"
     '(("a" (1) "b")) '("a" (1) "b")
     '("test" " | " "abc") "test | abc"
@@ -24,8 +24,8 @@
     '(("a" (1) "b") ("c" (2) "d")) '("a" (1) "bc" (2) "d")
     '(("a" (1) "b") " > " ("c" (2) "d")) '("a" (1) "b > c" (2) "d"))
   (testing "Wrong arguments"
-    (is (thrown? Exception (concat-str-body)))
-    (is (thrown? IllegalArgumentException (concat-str-body "test" 0 '("ab" "cd"))))))
+    (is (thrown? Exception (unite-str-body)))
+    (is (thrown? IllegalArgumentException (unite-str-body "test" 0 '("ab" "cd"))))))
 
 (deftest wrap-str-body-test
   (are [left body right expected]

@@ -12,7 +12,7 @@
 ;;     "test" ("abc" (0) "111")               -> ("testabc" (0) "111")
 ;;     ("abc" (0) "111") "test"               -> ("abc" (0) "111test")
 ;;     ("abc" (0) "111") ("test" '(1) "abcd") -> ("abc" (0) "111test" (quote (1)) "abcd")
-(defn- concat-two-str-body [left right]
+(defn- unite-two-str-body [left right]
   (when-not (and (str-body? left) (str-body? right))
     (throw (IllegalArgumentException. "left and right should include only str-bodies")))
   (cond
@@ -29,11 +29,11 @@
          (not (string? right)))
     `(~@(butlast left) ~(str (last left) (first right)) ~@(rest right))))
 
-(defn concat-str-body [left & rest-str-body-lst]
+(defn unite-str-body [left & rest-str-body-lst]
   (loop [head left
          rest-lst rest-str-body-lst]
     (if-not (empty? rest-lst)
-      (recur (concat-two-str-body head (first rest-lst))
+      (recur (unite-two-str-body head (first rest-lst))
              (rest rest-lst))
       head)))
 
@@ -45,7 +45,7 @@
     (throw (IllegalArgumentException. "left and right should be strings")))
   (when-not (str-body? body)
     (throw (IllegalArgumentException. "a body should be a list of str-body")))
-  (concat-str-body left body right))
+  (unite-str-body left body right))
 
 (defn- join-list [delimiter lst]
   (loop [result '()
@@ -63,7 +63,7 @@
     (throw (IllegalArgumentException. "a delimiter should be a string")))
   (when-not (every? str-body? str-body-lst))
   (if-not (empty? str-body-lst)
-    (apply concat-str-body (join-list delimiter str-body-lst))
+    (apply unite-str-body (join-list delimiter str-body-lst))
     ""))
 
 ;; Ex. "a" ("b")           -> ("a" "b")
