@@ -16,6 +16,7 @@
 (defn- parse-string [string]
   (add-prefix :string (list string)))
 
+;; TODO: process each element of array for such a case as [0 (:expr 1 + 2) 1]
 (defn- parse-arg [arg]
   (cond
     (list? arg) (cover-by-eval (parse-line arg))

@@ -24,18 +24,18 @@
                         (partition 2 body)))))
 
 (defn- str-command [expr]
-  (list (join " " (mapcat str-element expr))))
+  (join-str-body " " (map str-element expr)))
 
 (defn- str-cond [expr]
   (letfn [(str-if [head condition body]
             (list (str head
                        " [ "
-                       (join " " (mapcat str-element (rest condition)))
+                       (join-str-body " " (map str-element (rest condition)))
                        " ]; then")
-                  (str-line body)))
+                  (str-main (list body))))
           (str-else [body]
             (list "else"
-                  (str-line body)))]
+                  (str-main (list body))))]
     (concat
      (mapcat #(match-seq
                %
@@ -50,20 +50,21 @@
   (wrap-str-body "$(" (str-line expr) ")"))
 
 (defn- str-for [expr]
-  `(~@(wrap-str-body (str "for " (first expr) " in ")
-                     (str-line (second expr))
-                     "; do")
-    ~(str-main (nthrest expr 2))
-    "done"))
+  ;; TODO: should consider if the wrap-str-body return a list
+  (let [[variable range & body] expr]
+    `(~(wrap-str-body (str "for " variable " in ")
+                      (str-line range)
+                      "; do")
+      ~(str-main body)
+      "done")))
 
 (defn- str-function [expr]
   (list (str "function " (first expr) "() {")
         (str-main (rest expr))
         "}"))
 
-;; TODO: needs recur for such a case as (:array 0 (:eval :expr "0 + 5") 2)
 (defn- str-array [expr]
-  (list (join " " (mapcat str-element expr))))
+  (join-str-body " " (map str-element expr)))
 
 (defn- str-local [expr]
   (when (not= (first expr) :set)
@@ -88,8 +89,8 @@
 (defn- str-element [element]
   (cond
     (list? element) (str-line element)
-    (string? element) (list element)
-    (number? element) (list (str element))
+    (string? element) element
+    (number? element) (str element)
     (instance? clojure.lang.LazySeq element) (str-line element)
     :else (throw (Exception.
                   (format "not recognized element type: %s (%s)"

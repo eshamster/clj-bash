@@ -61,7 +61,8 @@
 (defn join-str-body [delimiter str-body-lst]
   (when-not (string? delimiter)
     (throw (IllegalArgumentException. "a delimiter should be a string")))
-  (when-not (every? str-body? str-body-lst))
+  (when-not (every? str-body? str-body-lst)
+    (throw (IllegalArgumentException. "a str-body-lst should be a list of str-body")))
   (if-not (empty? str-body-lst)
     (apply unite-str-body (join-list delimiter str-body-lst))
     ""))
