@@ -74,4 +74,13 @@
                (if ($x -lt 0)
                  (:echo -99)))
              (:test-if 10)
-             (:test-if -10)))
+             (:test-if -10))
+  (test-bash when
+             (defn test-when [x]
+               (when ($x -gt 0)
+                 (:echo 0)
+                 (:echo 1))
+               (:echo 2)
+               (:echo))
+             (:test-when 10)
+             (:test-when -10)))
