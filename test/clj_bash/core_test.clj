@@ -35,22 +35,27 @@
              (:add 10 20))
   (test-bash cond
              (defn test-cond [a]
-               (cond ($a -gt 0) (:echo 1)
-                     ($a -lt 0) (:echo -1)
+               (cond [$a -gt 0] (:echo 1)
+                     [$a -lt 0] (:echo -1)
                      :else (:echo 0)))
              (:test-cond 10)
              (:test-cond -10)
              (:test-cond 0)
-             (cond (0 -eq 0) (:echo 100))
-             (cond (0 -ne 0) (:echo 0)
-                   :else (:echo -100)))
+             (cond [0 -eq 0] (:echo 100))
+             (cond [0 -ne 0] (:echo 0)
+                   :else (:echo -100))
+             (:echo)
+             (cond (:true) (:echo a)
+                   :else (:echo b))
+             (cond (:false) (:echo a)
+                   :else (:echo b)))
   (test-bash do
              (do (:echo 2)
                  (for i [0 1 2]
                       (:echo $i)))
              (:echo)
              (defn test-do [num]
-               (cond ($num -gt 0) (do (:echo 1) (:echo 2))
+               (cond [$num -gt 0] (do (:echo 1) (:echo 2))
                      :else (do (:echo 10) (:echo 20))))
              (:test-do 10)
              (:test-do -10)))
@@ -68,16 +73,16 @@
 (deftest default-cb-macros-test
   (test-bash if
              (defn test-if [x]
-               (if ($x -gt 0)
+               (if [$x -gt 0]
                  (:echo 100)
                  (:echo -100))
-               (if ($x -lt 0)
+               (if [$x -lt 0]
                  (:echo -99)))
              (:test-if 10)
              (:test-if -10))
   (test-bash when
              (defn test-when [x]
-               (when ($x -gt 0)
+               (when [$x -gt 0]
                  (:echo 0)
                  (:echo 1))
                (:echo 2)
