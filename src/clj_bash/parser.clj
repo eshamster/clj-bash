@@ -1,6 +1,7 @@
 (ns clj-bash.parser)
 
-(use '[clojure.string :only [join]])
+(use '[clojure.string :only [join]]
+     '[clj-bash.cb-macro :only [cb-macro? cb-macroexpand]])
 
 (declare parse-line)
 (declare parse-main)
@@ -15,6 +16,7 @@
 (defn- parse-string [string]
   (add-prefix :string (list string)))
 
+;; TODO: process each element of array for such a case as [0 (:expr 1 + 2) 1]
 (defn- parse-arg [arg]
   (cond
     (list? arg) (cover-by-eval (parse-line arg))
@@ -31,6 +33,38 @@
   (add-prefix :command (concat (list command)
                                (map parse-arg rest))))
 
+;; --- cond --- ;;
+
+(defn- check-cond-body [body]
+  (if-not (even? (count body))
+    (throw (IllegalArgumentException. "cond requires an even number of forms"))))
+
+(defn- process-cond-line [now-result condition expr]
+  (when-not (seq? expr)
+    (throw (IllegalArgumentException.
+            (str "The process of cond should be a list: " expr))))
+  (let [parsed-expr (list (parse-line expr))]
+    (if (= condition :else)
+      (add-prefix :else parsed-expr)
+      (let [prefix (if (nil? now-result) :if :elif)
+            test-clause (add-prefix :test
+                                    (map parse-arg condition))]
+        (add-prefix prefix (cons test-clause parsed-expr))))))
+
+(defn- parse-cond [body]
+  (check-cond-body body)
+  (let [grouped-body (partition 2 body)]
+    (loop [result nil
+           line (first grouped-body)
+           rest-body (rest grouped-body)]
+      (if-not (nil? line)
+        (recur (cons (process-cond-line result (first line) (second line))
+                     result)
+               (first rest-body)
+               (rest rest-body))
+        (add-prefix :cond (reverse result))))))
+
+;; --- defn --- ;;
 
 ;; Note: For generality, it is probably better to move
 ;; this parsing process to clj-bash.str
@@ -54,6 +88,13 @@
                       (parse-defn-args args)
                       (parse-main body))))
 
+;; --- --- ;;
+
+(defn- parse-do [exprs]
+  (add-prefix :do (map parse-line exprs)))
+
+;; --- for --- ;;
+
 (defn- parse-for [var array rest]
   (add-prefix
    :for (concat (list var (parse-arg array))
@@ -63,18 +104,29 @@
   (add-prefix :set (list name (parse-arg value))))
 
 (defn- parse-pipe [exprs]
-  `(:pipe ~@(map parse-line exprs)))
+  (add-prefix :pipe (map parse-line exprs)))
 
+(defn- try-cb-macro [line]
+  (if (cb-macro? (first line))
+    (cb-macroexpand line)
+    (throw (Exception. (str (first line) " is not a cb-macro")))))
+
+;; TODO: refactor by using match
 (defn- parse-line [line]
   (let [kind (first line)
         args (rest line)]
     (if (keyword? kind)
       (parse-command (name kind) args)
       (case (name kind)
+        "cond" (parse-cond args)
         "defn" (parse-defn (first args) (second args) (nthrest args 2))
+        "do" (parse-do args)
         "for" (parse-for (first args) (second args) (nthrest args 2))
         "set" (parse-set-value (first args) (second args))
-        "->" (parse-pipe args)))))
+        "->" (parse-pipe args)
+        (try (parse-line (try-cb-macro line))
+             (catch Exception e
+               (str (name kind) " is not a reserved keyword or a cb-macro")))))))
 
 (defn parse-main [body-lst]
   (map parse-line body-lst))

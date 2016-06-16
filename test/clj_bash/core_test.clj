@@ -1,6 +1,7 @@
 (ns clj-bash.core-test
   (:require [clojure.test :refer :all]
             [clj-bash.core :refer :all]
+            [clj-bash.cb-macro :refer :all]
             [clj-bash.test-utils :refer :all]))
 
 (deftest a-test
@@ -21,7 +22,9 @@
   (test-bash pipe
              (-> (:echo testabcdefg)
                  (:sed -e "s/es/aa/")
-                 (:head -c 4)))
+                 (:head -c 4))
+             (-> (for i [0 1 2] (:echo $i))
+                 (:cat)))
   (test-bash set-value
              (set a 0)
              (set b (:expr $a + 1))
@@ -29,4 +32,46 @@
   (test-bash defn
              (defn add [x y]
                (:expr $x + $y))
-             (:add 10 20)))
+             (:add 10 20))
+  (test-bash cond
+             (defn test-cond [a]
+               (cond ($a -gt 0) (:echo 1)
+                     ($a -lt 0) (:echo -1)
+                     :else (:echo 0)))
+             (:test-cond 10)
+             (:test-cond -10)
+             (:test-cond 0)
+             (cond (0 -eq 0) (:echo 100))
+             (cond (0 -ne 0) (:echo 0)
+                   :else (:echo -100)))
+  (test-bash do
+             (do (:echo 2)
+                 (for i [0 1 2]
+                      (:echo $i)))
+             (:echo)
+             (defn test-do [num]
+               (cond ($num -gt 0) (do (:echo 1) (:echo 2))
+                     :else (do (:echo 10) (:echo 20))))
+             (:test-do 10)
+             (:test-do -10)))
+
+(deftest cb-macro-test
+  (init-cb-macro-table)
+  (def-cb-macro test-addr [a b]
+    `(:expr ~a + ~b))
+  (test-bash cb-macro
+             (test-addr 10 20)
+             (:echo a (test-addr 20 50))
+             (test-addr (test-addr 1 2) 3))
+  (init-cb-macro-table))
+
+(deftest default-cb-macros-test
+  (test-bash if
+             (defn test-if [x]
+               (if ($x -gt 0)
+                 (:echo 100)
+                 (:echo -100))
+               (if ($x -lt 0)
+                 (:echo -99)))
+             (:test-if 10)
+             (:test-if -10)))
