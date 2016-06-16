@@ -16,6 +16,7 @@
 (defn- parse-string [string]
   (add-prefix :string (list string)))
 
+;; TODO: process each element of array for such a case as [0 (:expr 1 + 2) 1]
 (defn- parse-arg [arg]
   (cond
     (list? arg) (cover-by-eval (parse-line arg))
@@ -87,6 +88,11 @@
                       (parse-defn-args args)
                       (parse-main body))))
 
+;; --- --- ;;
+
+(defn- parse-do [exprs]
+  (add-prefix :do (map parse-line exprs)))
+
 ;; --- for --- ;;
 
 (defn- parse-for [var array rest]
@@ -114,6 +120,7 @@
       (case (name kind)
         "cond" (parse-cond args)
         "defn" (parse-defn (first args) (second args) (nthrest args 2))
+        "do" (parse-do args)
         "for" (parse-for (first args) (second args) (nthrest args 2))
         "set" (parse-set-value (first args) (second args))
         "->" (parse-pipe args)

@@ -40,6 +40,7 @@
   (register-cb-macro-to 'cb-macro-table name args body)
   (register-cb-macro-to 'default-cb-macro-table name args body))
 
+;; TODO: return the name of the defined macro
 (defmacro def-cb-macro [name args body]
   (register-cb-macro name args body))
 

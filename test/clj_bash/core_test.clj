@@ -22,7 +22,9 @@
   (test-bash pipe
              (-> (:echo testabcdefg)
                  (:sed -e "s/es/aa/")
-                 (:head -c 4)))
+                 (:head -c 4))
+             (-> (for i [0 1 2] (:echo $i))
+                 (:cat)))
   (test-bash set-value
              (set a 0)
              (set b (:expr $a + 1))
@@ -41,7 +43,17 @@
              (:test-cond 0)
              (cond (0 -eq 0) (:echo 100))
              (cond (0 -ne 0) (:echo 0)
-                   :else (:echo -100))))
+                   :else (:echo -100)))
+  (test-bash do
+             (do (:echo 2)
+                 (for i [0 1 2]
+                      (:echo $i)))
+             (:echo)
+             (defn test-do [num]
+               (cond ($num -gt 0) (do (:echo 1) (:echo 2))
+                     :else (do (:echo 10) (:echo 20))))
+             (:test-do 10)
+             (:test-do -10)))
 
 (deftest cb-macro-test
   (init-cb-macro-table)
