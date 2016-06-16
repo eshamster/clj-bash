@@ -3,8 +3,6 @@
 - 制御構造
   - while
   - case
-  - do
-    - condにもdoを利用したテストを追加
   - EOF
 - Syntax Sugar
   - trap
@@ -22,6 +20,7 @@
 
 # improve
 
+- str-line, str-mainの返り値チェック
 - cb-macro
   - with-initial-cb-macro-table
 - cond

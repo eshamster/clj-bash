@@ -45,6 +45,9 @@
              expr)
      '("fi"))))
 
+(defn- str-do [expr]
+  (str-main expr))
+
 ;; TODO: test such a case as "a=$(for i in $(seq 0 2) ; do echo ${i}; done)"
 (defn- str-eval [expr]
   (wrap-str-body "$(" (str-line expr) ")"))
@@ -101,6 +104,7 @@
              [:array & expr] (str-array expr)
              [:command & expr] (str-command expr)
              [:cond & expr] (str-cond expr)
+             [:do & expr] (str-do expr)
              [:eval & expr] (str-eval expr)
              [:for & expr] (str-for expr)
              [:function & expr] (str-function expr)
