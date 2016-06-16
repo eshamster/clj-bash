@@ -27,11 +27,16 @@
   (join-str-body " " (map str-element expr)))
 
 (defn- str-cond [expr]
-  (letfn [(str-if [head condition body]
-            (list (str head
-                       " [ "
-                       (join-str-body " " (map str-element (rest condition)))
-                       " ]; then")
+  (letfn [(str-condition [head condition]
+            (if (= (first condition) :test)
+              (wrap-str-body "[ "
+                             (join-str-body " " (map str-element (rest condition)))
+                             " ]")
+              (str-line condition)))
+          (str-if [head condition body]
+            (list (wrap-str-body (str head " ")
+                                 (str-condition head condition)
+                                 "; then")
                   (str-main (list body))))
           (str-else [body]
             (list "else"

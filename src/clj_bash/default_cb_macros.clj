@@ -6,3 +6,7 @@
     `(cond ~condition ~if-expr)
     `(cond ~condition ~if-expr
            :else ~else-expr)))
+
+(def-cb-macro-as-default when [condition & body]
+  `(if ~condition
+     (do ~@body)))

@@ -47,8 +47,9 @@
     (if (= condition :else)
       (add-prefix :else parsed-expr)
       (let [prefix (if (nil? now-result) :if :elif)
-            test-clause (add-prefix :test
-                                    (map parse-arg condition))]
+            test-clause (if (vector? condition)
+                          (add-prefix :test (map parse-arg condition))
+                          (cover-by-eval (parse-line condition)))]
         (add-prefix prefix (cons test-clause parsed-expr))))))
 
 (defn- parse-cond [body]
