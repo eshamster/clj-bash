@@ -20,7 +20,7 @@
       (is (thrown? Exception
                    (match-seq       12  [:x y z] (+ y z)))))
     (testing "A count of a body is not even"
-      (is (thrown? IllegalArgumentException
+      (is (thrown? Exception
                    (eval '(match-seq '(1 2)
                                      [x y] (+ x y)
                                      [x y z] ;; needs a expression
