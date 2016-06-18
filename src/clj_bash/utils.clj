@@ -11,7 +11,8 @@ Example.
   (if-not (even? (count body))
     (throw (IllegalArgumentException. "a body of match-seq requires an even number of forms")))
   `(match [~target]
-          ~@(apply concat
-                   (map (fn [pair#]
-                          `([(~(first pair#) :seq)] ~(second pair#)))
-                        (partition 2 body)))))
+          ~@(mapcat #(let [[condition# expr#] %]
+                       (if-not (= condition# :else)
+                         `([(~condition# :seq)] ~expr#)
+                         `(:else ~expr#)))
+                    (partition 2 body))))
