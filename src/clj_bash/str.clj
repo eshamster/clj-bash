@@ -9,19 +9,23 @@
 (declare str-element)
 (declare str-set-value)
 
+(defn- str-and [expr]
+  (join-str-body " && " (map str-line expr)))
+
 (defn- str-command [expr]
   (join-str-body " " (map str-element expr)))
 
+(defn- str-condition-clause [condition]
+  (if (= (first condition) :test)
+    (wrap-str-body "[ "
+                   (join-str-body " " (map str-element (rest condition)))
+                   " ]")
+    (str-line condition)))
+
 (defn- str-cond [expr]
-  (letfn [(str-condition [head condition]
-            (if (= (first condition) :test)
-              (wrap-str-body "[ "
-                             (join-str-body " " (map str-element (rest condition)))
-                             " ]")
-              (str-line condition)))
-          (str-if [head condition body]
+  (letfn [(str-if [head condition body]
             (list (wrap-str-body (str head " ")
-                                 (str-condition head condition)
+                                 (str-condition-clause condition)
                                  "; then")
                   (str-main (list body))))
           (str-else [body]
@@ -65,6 +69,9 @@
     (throw (Exception. (str "Invalid str-local (the first of expr should be the set-value clause): " expr))))
   (wrap-str-body "local " (str-set-value (rest expr)) ""))
 
+(defn- str-or [expr]
+  (join-str-body " || " (map str-line expr)))
+
 (defn- str-pipe [expr]
   (join-str-body " | " (map str-line expr)))
 
@@ -87,6 +94,14 @@
   (let [name (first expr)]
     (wrap-str-body "${" name "}")))
 
+(defn- str-while [expr]
+  (let [[condition & body] expr]
+    (list (wrap-str-body "while "
+                         (str-condition-clause condition)
+                         "; do")
+          (str-main body)
+          "done")))
+
 ;; --- basic parsers --- ;;
 
 (defn- str-element [element]
@@ -105,6 +120,7 @@
   (check-return
    [str-body? "A return value of str-line should be a str-body"]
    (match-seq line
+              [:and & expr] (str-and expr)
               [:array & expr] (str-array expr)
               [:command & expr] (str-command expr)
               [:cond & expr] (str-cond expr)
@@ -113,10 +129,12 @@
               [:for & expr] (str-for expr)
               [:function & expr] (str-function expr)
               [:local & expr] (str-local expr)
+              [:or & expr] (str-or expr)
               [:pipe & expr] (str-pipe expr)
               [:set & expr] (str-set-value expr)
               [:string & expr] (str-string expr)
-              [:var & expr] (str-var expr))))
+              [:var & expr] (str-var expr)
+              [:while & expr] (str-while expr))))
 
 (defn str-main [parsed-tree]
   (check-return [#(and (seq? %) (str-body? %))

@@ -32,6 +32,14 @@
                   (format "not recognized arg type: %s (%s)"
                           arg (type arg))))))
 
+(defn- parse-and-or [and-or exprs]
+  (add-prefix and-or (map parse-line exprs)))
+
+(defn- parse-and [exprs]
+  (parse-and-or :and exprs))
+(defn- parse-or [exprs]
+  (parse-and-or :or exprs))
+
 (defn- parse-command [command rest]
   (add-prefix :command (concat (list command)
                                (map parse-arg rest))))
@@ -42,6 +50,11 @@
   (if-not (even? (count body))
     (throw (IllegalArgumentException. "cond requires an even number of forms"))))
 
+(defn- process-condition [condition]
+  (if (vector? condition)
+    (add-prefix :test (map parse-arg condition))
+    (cover-by-eval (parse-line condition))))
+
 (defn- process-cond-line [now-result condition expr]
   (when-not (seq? expr)
     (throw (IllegalArgumentException.
@@ -50,9 +63,7 @@
     (if (= condition :else)
       (add-prefix :else parsed-expr)
       (let [prefix (if (nil? now-result) :if :elif)
-            test-clause (if (vector? condition)
-                          (add-prefix :test (map parse-arg condition))
-                          (cover-by-eval (parse-line condition)))]
+            test-clause (process-condition condition)]
         (add-prefix prefix (cons test-clause parsed-expr))))))
 
 (defn- parse-cond [body]
@@ -97,8 +108,6 @@
 (defn- parse-do [exprs]
   (add-prefix :do (map parse-line exprs)))
 
-;; --- for --- ;;
-
 (defn- parse-for [var array rest]
   (add-prefix
    :for (concat (list var (parse-arg array))
@@ -113,6 +122,15 @@
 (defn- parse-var [var-name]
   (add-prefix :var (list (name var-name))))
 
+;; --- while --- ;;
+
+(defn- parse-while [condition body]
+  (add-prefix :while
+              (cons (process-condition condition)
+                    (parse-main body))))
+
+;; --- basic functions --- ;;
+
 (defn- try-cb-macro [line]
   (if (cb-macro? (first line))
     (cb-macroexpand line)
@@ -126,14 +144,17 @@
       (parse-command kind-name args)
       (match-seq
        (cons kind-name args)
+       ["and" & body]  (parse-and body)
        ["cond" & body] (parse-cond body)
        ["defn" name fn-args & body] (parse-defn name fn-args body)
        ["do" & body]   (parse-do body)
        ["for" var array & body]  (parse-for var array body)
+       ["or" & body]   (parse-or body)
        ["set" name value]        (parse-set-value name value)
        ["var" name]    (parse-var name)
+       ["while" condition & body] (parse-while condition body)
        ["->" & body]   (parse-pipe body)
        :else (parse-line (try-cb-macro line))))))
 
-(defn parse-main [body-lst]
-  (map parse-line body-lst))
+(defn parse-main [body]
+  (map parse-line body))

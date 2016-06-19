@@ -1,7 +1,6 @@
 # functions
 
 - 制御構造
-  - while
   - case
   - EOF
 - Syntax Sugar
@@ -14,8 +13,6 @@
 - 未分類
   - comment
   - subprocess
-  - and
-  - or
   - Ex. "a$(echo b)c" -> "abc"
 
 # fixes

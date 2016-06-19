@@ -19,6 +19,16 @@
              (for i [0 4 3]
                   (for j (:seq 0 3)
                        (:echo "$i, $j"))))
+  (test-bash while
+             (defn test-neq [x y] (:test $x -ne $y))
+             (set i 0)
+             (while [$i -lt 3]
+               (:echo $i)
+               (set j 100)
+               (while (:test-neq $j 50)
+                 (:echo $j)
+                 (dec j 10))
+               (inc i)))
   (test-bash pipe
              (-> (:echo testabcdefg)
                  (:sed -e "s/es/aa/")
@@ -66,7 +76,16 @@
              (set temp (var x))
              (set x (var y))
              (set y (var temp))
-             (:echo (var x) ", " (var y))))
+             (:echo (var x) ", " (var y)))
+  (test-bash and-or
+             (or (:false) (:echo "[or] should print"))
+             (or (:false) (:false) (:echo "[or] should print"))
+             (or (:echo "test") (:echo "[or] should not print"))
+             (or (and (:false)
+                      (:echo "[and] should not print"))
+                 (:echo "[or (and)] should print"))
+             (and (:true) (:echo "[and] should print"))
+             (and (:echo "and1") (:echo "and2") (:echo "and3"))))
 
 (deftest cb-macro-test
   (init-cb-macro-table)
