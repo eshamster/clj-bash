@@ -79,6 +79,12 @@
   (init-cb-macro-table))
 
 (deftest default-cb-macros-test
+  (test-bash inc-and-dec
+             (set x 50) (:echo (var x))
+             (inc x)    (:echo (var x))
+             (inc x 10) (:echo (var x))
+             (dec x)    (:echo (var x))
+             (dec x 5)  (:echo (var x)))
   (test-bash if
              (defn test-if [x]
                (if [$x -gt 0]

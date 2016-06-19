@@ -11,7 +11,6 @@
   - to-stderr
   - relative path ($(dirname ${0}))
   - when-err
-  - incf
 - 未分類
   - comment
   - subprocess
