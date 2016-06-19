@@ -81,28 +81,34 @@
   (wrap-str-body "\"" expr "\""))
 
 (defn- str-element [element]
-  (cond
-    (list? element) (str-line element)
-    (string? element) element
-    (number? element) (str element)
-    (instance? clojure.lang.LazySeq element) (str-line element)
-    :else (throw (Exception.
-                  (format "not recognized element type: %s (%s)"
-                          element (type element))))))
+  (check-return
+   [str-body? "A return value of str-element should be a str-body"]
+   (cond
+     (list? element) (str-line element)
+     (string? element) element
+     (number? element) (str element)
+     (instance? clojure.lang.LazySeq element) (str-line element)
+     :else (throw (Exception.
+                   (format "not recognized element type: %s (%s)"
+                           element (type element)))))))
 
 (defn- str-line [line]
-  (match-seq line
-             [:array & expr] (str-array expr)
-             [:command & expr] (str-command expr)
-             [:cond & expr] (str-cond expr)
-             [:do & expr] (str-do expr)
-             [:eval & expr] (str-eval expr)
-             [:for & expr] (str-for expr)
-             [:function & expr] (str-function expr)
-             [:local & expr] (str-local expr)
-             [:pipe & expr] (str-pipe expr)
-             [:set & expr] (str-set-value expr)
-             [:string & expr] (str-string expr)))
+  (check-return
+   [str-body? "A return value of str-line should be a str-body"]
+   (match-seq line
+              [:array & expr] (str-array expr)
+              [:command & expr] (str-command expr)
+              [:cond & expr] (str-cond expr)
+              [:do & expr] (str-do expr)
+              [:eval & expr] (str-eval expr)
+              [:for & expr] (str-for expr)
+              [:function & expr] (str-function expr)
+              [:local & expr] (str-local expr)
+              [:pipe & expr] (str-pipe expr)
+              [:set & expr] (str-set-value expr)
+              [:string & expr] (str-string expr))))
 
 (defn str-main [parsed-tree]
-  (construct-str-body-lst parsed-tree str-line))
+  (check-return [#(and (seq? %) (str-body? %))
+                 "A return value of str-main should be a sequence && str-body"]
+                (construct-str-body-lst parsed-tree str-line)))
