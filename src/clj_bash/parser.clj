@@ -1,6 +1,7 @@
 (ns clj-bash.parser)
 
 (use '[clojure.string :only [join]]
+     '[clj-bash.utils :only [match-seq]]
      '[clj-bash.cb-macro :only [cb-macro? cb-macroexpand]])
 
 (declare parse-line)
@@ -19,7 +20,9 @@
 ;; TODO: process each element of array for such a case as [0 (:expr 1 + 2) 1]
 (defn- parse-arg [arg]
   (cond
-    (list? arg) (cover-by-eval (parse-line arg))
+    (seq? arg) (if-not (= (name (first arg)) "var")
+                  (cover-by-eval (parse-line arg))
+                  (parse-line arg))
     (vector? arg) (add-prefix :array arg)
     (number? arg) (str arg)
     (string? arg) (parse-string arg)
@@ -107,27 +110,30 @@
 (defn- parse-pipe [exprs]
   (add-prefix :pipe (map parse-line exprs)))
 
+(defn- parse-var [var-name]
+  (add-prefix :var (list (name var-name))))
+
 (defn- try-cb-macro [line]
   (if (cb-macro? (first line))
     (cb-macroexpand line)
     (throw (Exception. (str (first line) " is not a cb-macro")))))
 
-;; TODO: refactor by using match
 (defn- parse-line [line]
   (let [kind (first line)
+        kind-name (name kind)
         args (rest line)]
     (if (keyword? kind)
-      (parse-command (name kind) args)
-      (case (name kind)
-        "cond" (parse-cond args)
-        "defn" (parse-defn (first args) (second args) (nthrest args 2))
-        "do" (parse-do args)
-        "for" (parse-for (first args) (second args) (nthrest args 2))
-        "set" (parse-set-value (first args) (second args))
-        "->" (parse-pipe args)
-        (try (parse-line (try-cb-macro line))
-             (catch Exception e
-               (str (name kind) " is not a reserved keyword or a cb-macro")))))))
+      (parse-command kind-name args)
+      (match-seq
+       (cons kind-name args)
+       ["cond" & body] (parse-cond body)
+       ["defn" name fn-args & body] (parse-defn name fn-args body)
+       ["do" & body]   (parse-do body)
+       ["for" var array & body]  (parse-for var array body)
+       ["set" name value]        (parse-set-value name value)
+       ["var" name]    (parse-var name)
+       ["->" & body]   (parse-pipe body)
+       :else (parse-line (try-cb-macro line))))))
 
 (defn parse-main [body-lst]
   (map parse-line body-lst))

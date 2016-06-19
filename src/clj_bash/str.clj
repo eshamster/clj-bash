@@ -1,27 +1,13 @@
 (ns clj-bash.str
-  (:require [clj-bash.str-body :refer :all]))
+  (:require [clj-bash.str-body :refer :all])
+  (:require [clj-bash.utils :refer :all]))
 
 (use '[clojure.string :only [join]])
-(use '[clojure.core.match :only [match]])
 
 (declare str-main)
 (declare str-line)
 (declare str-element)
 (declare str-set-value)
-
-;; TODO: make a utils namespace and move this macro there
-"Example.
-(match-seq target
-  [:abc & expr] (some-func expr)
-  [:bcd a b] (some-func2 a b))"
-(defmacro match-seq [target & body]
-  (if-not (even? (count body))
-    (throw (IllegalArgumentException. "a body of match-seq requires an even number of forms")))
-  `(match [~target]
-          ~@(apply concat
-                   (map (fn [pair#]
-                          `([(~(first pair#) :seq)] ~(second pair#)))
-                        (partition 2 body)))))
 
 (defn- str-command [expr]
   (join-str-body " " (map str-element expr)))
@@ -94,29 +80,45 @@
     (throw (Exception. (str "Invalid string: " expr))))
   (wrap-str-body "\"" expr "\""))
 
+(defn- str-var [expr]
+  (when-not (and (= (count expr) 1)
+                 (string? (first expr)))
+    (throw (IllegalArgumentException. (str "str-var takes a list of one string: " expr))))
+  (let [name (first expr)]
+    (wrap-str-body "${" name "}")))
+
+;; --- basic parsers --- ;;
+
 (defn- str-element [element]
-  (cond
-    (list? element) (str-line element)
-    (string? element) element
-    (number? element) (str element)
-    (instance? clojure.lang.LazySeq element) (str-line element)
-    :else (throw (Exception.
-                  (format "not recognized element type: %s (%s)"
-                          element (type element))))))
+  (check-return
+   [str-body? "A return value of str-element should be a str-body"]
+   (cond
+     (list? element) (str-line element)
+     (string? element) element
+     (number? element) (str element)
+     (instance? clojure.lang.LazySeq element) (str-line element)
+     :else (throw (Exception.
+                   (format "not recognized element type: %s (%s)"
+                           element (type element)))))))
 
 (defn- str-line [line]
-  (match-seq line
-             [:array & expr] (str-array expr)
-             [:command & expr] (str-command expr)
-             [:cond & expr] (str-cond expr)
-             [:do & expr] (str-do expr)
-             [:eval & expr] (str-eval expr)
-             [:for & expr] (str-for expr)
-             [:function & expr] (str-function expr)
-             [:local & expr] (str-local expr)
-             [:pipe & expr] (str-pipe expr)
-             [:set & expr] (str-set-value expr)
-             [:string & expr] (str-string expr)))
+  (check-return
+   [str-body? "A return value of str-line should be a str-body"]
+   (match-seq line
+              [:array & expr] (str-array expr)
+              [:command & expr] (str-command expr)
+              [:cond & expr] (str-cond expr)
+              [:do & expr] (str-do expr)
+              [:eval & expr] (str-eval expr)
+              [:for & expr] (str-for expr)
+              [:function & expr] (str-function expr)
+              [:local & expr] (str-local expr)
+              [:pipe & expr] (str-pipe expr)
+              [:set & expr] (str-set-value expr)
+              [:string & expr] (str-string expr)
+              [:var & expr] (str-var expr))))
 
 (defn str-main [parsed-tree]
-  (construct-str-body-lst parsed-tree str-line))
+  (check-return [#(and (seq? %) (str-body? %))
+                 "A return value of str-main should be a sequence && str-body"]
+                (construct-str-body-lst parsed-tree str-line)))

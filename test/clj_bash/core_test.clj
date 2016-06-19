@@ -58,7 +58,15 @@
                (cond [$num -gt 0] (do (:echo 1) (:echo 2))
                      :else (do (:echo 10) (:echo 20))))
              (:test-do 10)
-             (:test-do -10)))
+             (:test-do -10))
+  (test-bash var
+             (set x 10)
+             (set y 20)
+             (:echo (var x) ", " (var y))
+             (set temp (var x))
+             (set x (var y))
+             (set y (var temp))
+             (:echo (var x) ", " (var y))))
 
 (deftest cb-macro-test
   (init-cb-macro-table)
@@ -71,6 +79,12 @@
   (init-cb-macro-table))
 
 (deftest default-cb-macros-test
+  (test-bash inc-and-dec
+             (set x 50) (:echo (var x))
+             (inc x)    (:echo (var x))
+             (inc x 10) (:echo (var x))
+             (dec x)    (:echo (var x))
+             (dec x 5)  (:echo (var x)))
   (test-bash if
              (defn test-if [x]
                (if [$x -gt 0]
