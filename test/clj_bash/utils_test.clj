@@ -27,3 +27,16 @@
                                      [x y] (+ x y)
                                      [x y z] ;; needs a expression
                                      )))))))
+
+(deftest check-return-test
+  (is (= (check-return
+          [string? "should be a string"]
+          100
+          "test")
+         "test"))
+  (is (thrown-with-msg?
+       Exception #"should be a string.*12"
+       (check-return
+        [string? "should be a string"]
+        100
+        12))))

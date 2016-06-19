@@ -16,3 +16,10 @@ Example.
                          `([(~condition# :seq)] ~expr#)
                          `(:else ~expr#)))
                     (partition 2 body))))
+
+"Check if a return value of the body satisfies the predication"
+(defmacro check-return [[predicate err-message] & body]
+  `(let [result# (do ~@body)]
+     (if (~predicate result#)
+       result#
+       (throw (Exception. (str ~err-message " (The return value: " result# ")"))))))

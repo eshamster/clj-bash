@@ -11,9 +11,12 @@
   - to-stderr
   - relative path ($(dirname ${0}))
   - when-err
+  - incf
 - 未分類
   - comment
   - subprocess
+  - and
+  - or
   - Ex. "a$(echo b)c" -> "abc"
 
 # fixes
