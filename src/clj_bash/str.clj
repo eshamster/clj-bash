@@ -12,16 +12,17 @@
 (defn- str-command [expr]
   (join-str-body " " (map str-element expr)))
 
+(defn- str-condition-clause [condition]
+  (if (= (first condition) :test)
+    (wrap-str-body "[ "
+                   (join-str-body " " (map str-element (rest condition)))
+                   " ]")
+    (str-line condition)))
+
 (defn- str-cond [expr]
-  (letfn [(str-condition [head condition]
-            (if (= (first condition) :test)
-              (wrap-str-body "[ "
-                             (join-str-body " " (map str-element (rest condition)))
-                             " ]")
-              (str-line condition)))
-          (str-if [head condition body]
+  (letfn [(str-if [head condition body]
             (list (wrap-str-body (str head " ")
-                                 (str-condition head condition)
+                                 (str-condition-clause condition)
                                  "; then")
                   (str-main (list body))))
           (str-else [body]
@@ -87,6 +88,14 @@
   (let [name (first expr)]
     (wrap-str-body "${" name "}")))
 
+(defn- str-while [expr]
+  (let [[condition & body] expr]
+    (list (wrap-str-body "while "
+                         (str-condition-clause condition)
+                         "; do")
+          (str-main body)
+          "done")))
+
 ;; --- basic parsers --- ;;
 
 (defn- str-element [element]
@@ -116,7 +125,8 @@
               [:pipe & expr] (str-pipe expr)
               [:set & expr] (str-set-value expr)
               [:string & expr] (str-string expr)
-              [:var & expr] (str-var expr))))
+              [:var & expr] (str-var expr)
+              [:while & expr] (str-while expr))))
 
 (defn str-main [parsed-tree]
   (check-return [#(and (seq? %) (str-body? %))

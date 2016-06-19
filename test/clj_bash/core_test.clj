@@ -19,6 +19,16 @@
              (for i [0 4 3]
                   (for j (:seq 0 3)
                        (:echo "$i, $j"))))
+  (test-bash while
+             (defn test-neq [x y] (:test $x -ne $y))
+             (set i 0)
+             (while [$i -lt 3]
+               (:echo $i)
+               (set j 100)
+               (while (:test-neq $j 50)
+                 (:echo $j)
+                 (dec j 10))
+               (inc i)))
   (test-bash pipe
              (-> (:echo testabcdefg)
                  (:sed -e "s/es/aa/")

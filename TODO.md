@@ -1,7 +1,6 @@
 # functions
 
 - 制御構造
-  - while
   - case
   - EOF
 - Syntax Sugar
