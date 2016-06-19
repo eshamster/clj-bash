@@ -1,0 +1,8 @@
+[or] should print
+[or] should print
+test
+[or (and)] should print
+[and] should print
+and1
+and2
+and3

@@ -13,8 +13,6 @@
 - 未分類
   - comment
   - subprocess
-  - and
-  - or
   - Ex. "a$(echo b)c" -> "abc"
 
 # fixes

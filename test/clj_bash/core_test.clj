@@ -76,7 +76,16 @@
              (set temp (var x))
              (set x (var y))
              (set y (var temp))
-             (:echo (var x) ", " (var y))))
+             (:echo (var x) ", " (var y)))
+  (test-bash and-or
+             (or (:false) (:echo "[or] should print"))
+             (or (:false) (:false) (:echo "[or] should print"))
+             (or (:echo "test") (:echo "[or] should not print"))
+             (or (and (:false)
+                      (:echo "[and] should not print"))
+                 (:echo "[or (and)] should print"))
+             (and (:true) (:echo "[and] should print"))
+             (and (:echo "and1") (:echo "and2") (:echo "and3"))))
 
 (deftest cb-macro-test
   (init-cb-macro-table)

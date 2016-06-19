@@ -9,6 +9,9 @@
 (declare str-element)
 (declare str-set-value)
 
+(defn- str-and [expr]
+  (join-str-body " && " (map str-line expr)))
+
 (defn- str-command [expr]
   (join-str-body " " (map str-element expr)))
 
@@ -66,6 +69,9 @@
     (throw (Exception. (str "Invalid str-local (the first of expr should be the set-value clause): " expr))))
   (wrap-str-body "local " (str-set-value (rest expr)) ""))
 
+(defn- str-or [expr]
+  (join-str-body " || " (map str-line expr)))
+
 (defn- str-pipe [expr]
   (join-str-body " | " (map str-line expr)))
 
@@ -114,6 +120,7 @@
   (check-return
    [str-body? "A return value of str-line should be a str-body"]
    (match-seq line
+              [:and & expr] (str-and expr)
               [:array & expr] (str-array expr)
               [:command & expr] (str-command expr)
               [:cond & expr] (str-cond expr)
@@ -122,6 +129,7 @@
               [:for & expr] (str-for expr)
               [:function & expr] (str-function expr)
               [:local & expr] (str-local expr)
+              [:or & expr] (str-or expr)
               [:pipe & expr] (str-pipe expr)
               [:set & expr] (str-set-value expr)
               [:string & expr] (str-string expr)

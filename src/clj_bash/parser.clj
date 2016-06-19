@@ -32,6 +32,14 @@
                   (format "not recognized arg type: %s (%s)"
                           arg (type arg))))))
 
+(defn- parse-and-or [and-or exprs]
+  (add-prefix and-or (map parse-line exprs)))
+
+(defn- parse-and [exprs]
+  (parse-and-or :and exprs))
+(defn- parse-or [exprs]
+  (parse-and-or :or exprs))
+
 (defn- parse-command [command rest]
   (add-prefix :command (concat (list command)
                                (map parse-arg rest))))
@@ -136,10 +144,12 @@
       (parse-command kind-name args)
       (match-seq
        (cons kind-name args)
+       ["and" & body]  (parse-and body)
        ["cond" & body] (parse-cond body)
        ["defn" name fn-args & body] (parse-defn name fn-args body)
        ["do" & body]   (parse-do body)
        ["for" var array & body]  (parse-for var array body)
+       ["or" & body]   (parse-or body)
        ["set" name value]        (parse-set-value name value)
        ["var" name]    (parse-var name)
        ["while" condition & body] (parse-while condition body)
