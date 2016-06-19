@@ -80,6 +80,15 @@
     (throw (Exception. (str "Invalid string: " expr))))
   (wrap-str-body "\"" expr "\""))
 
+(defn- str-var [expr]
+  (when-not (and (= (count expr) 1)
+                 (string? (first expr)))
+    (throw (IllegalArgumentException. (str "str-var takes a list of one string: " expr))))
+  (let [name (first expr)]
+    (wrap-str-body "${" name "}")))
+
+;; --- basic parsers --- ;;
+
 (defn- str-element [element]
   (check-return
    [str-body? "A return value of str-element should be a str-body"]
@@ -106,7 +115,8 @@
               [:local & expr] (str-local expr)
               [:pipe & expr] (str-pipe expr)
               [:set & expr] (str-set-value expr)
-              [:string & expr] (str-string expr))))
+              [:string & expr] (str-string expr)
+              [:var & expr] (str-var expr))))
 
 (defn str-main [parsed-tree]
   (check-return [#(and (seq? %) (str-body? %))

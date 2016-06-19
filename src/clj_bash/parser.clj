@@ -20,7 +20,9 @@
 ;; TODO: process each element of array for such a case as [0 (:expr 1 + 2) 1]
 (defn- parse-arg [arg]
   (cond
-    (list? arg) (cover-by-eval (parse-line arg))
+    (list? arg) (if-not (= (name (first arg)) "var")
+                  (cover-by-eval (parse-line arg))
+                  (parse-line arg))
     (vector? arg) (add-prefix :array arg)
     (number? arg) (str arg)
     (string? arg) (parse-string arg)
@@ -108,6 +110,9 @@
 (defn- parse-pipe [exprs]
   (add-prefix :pipe (map parse-line exprs)))
 
+(defn- parse-var [var-name]
+  (add-prefix :var (list (name var-name))))
+
 (defn- try-cb-macro [line]
   (if (cb-macro? (first line))
     (cb-macroexpand line)
@@ -126,6 +131,7 @@
        ["do" & body]   (parse-do body)
        ["for" var array & body]  (parse-for var array body)
        ["set" name value]        (parse-set-value name value)
+       ["var" name]    (parse-var name)
        ["->" & body]   (parse-pipe body)
        :else (try (parse-line (try-cb-macro line))
                   (catch Exception e

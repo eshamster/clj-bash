@@ -23,13 +23,14 @@
 
 # improve
 
-- str-line, str-mainの返り値チェック
 - cb-macro
   - with-initial-cb-macro-table
 - str-bodyにネスト（forやcondの内部）を扱うインタフェースをつける
   - 現状はstr-mainの返り値をリスト操作で挟み込んでいる
   - str-mainの返り値はリスト型のstr-bodyであることが保証されている（はず）
     なので、当面はこの実装でも問題（面倒な分岐）になることはないのでは
+- var
+  - default値: (var x :default test) -> ${x:-test}
 
 # discussion
 
