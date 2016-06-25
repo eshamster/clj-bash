@@ -49,8 +49,8 @@
 
 (defn- str-for [expr]
   ;; TODO: should consider if the wrap-str-body return a list
-  (let [[variable range & body] expr]
-    `(~(wrap-str-body (str "for " variable " in ")
+  (let [[& {:keys [var range body]}] expr]
+    `(~(wrap-str-body (str "for " var " in ")
                       (str-line range)
                       "; do")
       ~(str-main body)

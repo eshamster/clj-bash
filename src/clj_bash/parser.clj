@@ -110,8 +110,9 @@
 
 (defn- parse-for [var array rest]
   (add-prefix
-   :for (concat (list var (parse-arg array))
-                (map parse-line rest))))
+   :for (list :var var
+              :range (parse-arg array)
+              :body (map parse-line rest))))
 
 (defn- parse-set-value [name value]
   (add-prefix :set (list name (parse-arg value))))
