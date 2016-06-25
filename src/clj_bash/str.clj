@@ -94,6 +94,20 @@
   (let [name (first expr)]
     (wrap-str-body "${" name "}")))
 
+(def heredoc-identifier "[[EOF]]")
+
+(defn- str-with-heredoc [expr]
+  (let [[& {:keys [body out heredoc]}] expr]
+    (flatten
+     (list (unite-str-body (str-line body)
+                           "<<EOF"
+                           (if (nil? out)
+                             ""
+                             (unite-str-body (if (= (first out) :out) ">" ">>")
+                                             (str-element (second out)))))
+           (map #(str heredoc-identifier %) heredoc)
+           (str heredoc-identifier "EOF")))))
+
 (defn- str-while [expr]
   (let [[condition & body] expr]
     (list (wrap-str-body "while "
@@ -134,6 +148,7 @@
               [:set & expr] (str-set-value expr)
               [:string & expr] (str-string expr)
               [:var & expr] (str-var expr)
+              [:with-heredoc & expr] (str-with-heredoc expr)
               [:while & expr] (str-while expr))))
 
 (defn str-main [parsed-tree]

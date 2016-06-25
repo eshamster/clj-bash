@@ -1,10 +1,15 @@
 (ns clj-bash.pprint)
 
+(use '[clojure.string :as str])
+(use '[clj-bash.str :only [heredoc-identifier]])
+
 (def ^:dynamic num-indent 2)
 
 (defn- indent-line [depth str-line]
-  (str (apply str (repeat (* depth num-indent) " "))
-       str-line))
+  (if (str/starts-with? str-line heredoc-identifier)
+    (str/replace-first str-line heredoc-identifier "")
+    (str (apply str (repeat (* depth num-indent) " "))
+         str-line)))
 
 (defn- inc-hash-value [hash key add-value]
   (let [base-value (hash key)]

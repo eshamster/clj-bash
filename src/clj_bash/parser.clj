@@ -122,6 +122,32 @@
 (defn- parse-var [var-name]
   (add-prefix :var (list (name var-name))))
 
+;; TODO: move to utils, and write tests
+(defn ensure-no-unrecognized-keys [target recognized-key-lst]
+  (loop [rest-map (cond (empty? target) nil
+                        (map? target) target
+                        (seq? target) (apply hash-map target)
+                        :else (throw (IllegalArgumentException.
+                                      (str "not recognized type: " target (type target)))))
+         rest-recog-key-lst recognized-key-lst]
+    (if-not (empty? rest-recog-key-lst)
+      (recur (dissoc rest-map (first rest-recog-key-lst))
+             (rest rest-recog-key-lst))
+      (if (empty? rest-map)
+        true
+        (throw (IllegalArgumentException.
+                (str (keys rest-map) " are not recognized keys")))))))
+
+(defn- parse-with-heredoc [body heredoc]
+  (let [[command & {:keys [out append] :as options}] body]
+    (ensure-no-unrecognized-keys options '(:out :append))
+    (add-prefix :with-heredoc
+                (list :body (parse-line command)
+                      :out (cond (some? append) (list :append (parse-arg append))
+                                 (some? out) (list :out (parse-arg out))
+                                 :else  nil)
+                      :heredoc heredoc))))
+
 ;; --- while --- ;;
 
 (defn- parse-while [condition body]
@@ -152,6 +178,7 @@
        ["or" & body]   (parse-or body)
        ["set" name value]        (parse-set-value name value)
        ["var" name]    (parse-var name)
+       ["with-heredoc" [& body] & heredoc] (parse-with-heredoc body heredoc)
        ["while" condition & body] (parse-while condition body)
        ["->" & body]   (parse-pipe body)
        :else (parse-line (try-cb-macro line))))))
