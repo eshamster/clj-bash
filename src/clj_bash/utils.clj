@@ -23,3 +23,20 @@ Example.
      (if (~predicate result#)
        result#
        (throw (Exception. (str ~err-message " (The return value: " result# ")"))))))
+
+(defn ensure-no-unrecognized-keys [target recognized-key-lst]
+  (loop [rest-map (cond (empty? target) nil
+                        (map? target) target
+                        (seq? target) (apply hash-map target)
+                        :else (throw (IllegalArgumentException.
+                                      (str "not recognized type: "
+                                           target
+                                           "(type: " (type target) ")"))))
+         rest-recog-key-lst recognized-key-lst]
+    (if-not (empty? rest-recog-key-lst)
+      (recur (dissoc rest-map (first rest-recog-key-lst))
+             (rest rest-recog-key-lst))
+      (if (empty? rest-map)
+        true
+        (throw (IllegalArgumentException.
+                (str (keys rest-map) " are not recognized keys")))))))
