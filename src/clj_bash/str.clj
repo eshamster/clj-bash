@@ -9,6 +9,10 @@
 (declare str-element)
 (declare str-set-value)
 
+(defmacro ^:private let-keys [[key-lst pair-lst] & body]
+  `(let [[& {:keys [~@key-lst]}] ~pair-lst]
+     ~@body))
+
 (defn- str-and [expr]
   (join-str-body " && " (map str-line expr)))
 
@@ -49,7 +53,7 @@
 
 (defn- str-for [expr]
   ;; TODO: should consider if the wrap-str-body return a list
-  (let [[& {:keys [var range body]}] expr]
+  (let-keys [[var range body] expr]
     `(~(wrap-str-body (str "for " var " in ")
                       (str-line range)
                       "; do")
@@ -97,7 +101,7 @@
 (def heredoc-identifier "[[EOF]]")
 
 (defn- str-with-heredoc [expr]
-  (let [[& {:keys [body out heredoc]}] expr]
+  (let-keys [[body out heredoc] expr]
     (flatten
      (list (unite-str-body (str-line body)
                            "<<EOF"
