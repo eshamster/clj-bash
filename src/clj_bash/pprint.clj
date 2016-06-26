@@ -17,6 +17,6 @@
 
 (defn pprint-tree [tree & {:keys [env] :or {env {:depth 0}}}]
   (doseq [line tree]
-    (if (list? line)
+    (if (seq? line)
       (pprint-tree line :env (inc-hash-value env :depth 1))
       (println (indent-line (env :depth) line)))))
