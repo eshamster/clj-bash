@@ -1,7 +1,7 @@
 (ns clj-bash.parser)
 
 (use '[clojure.string :only [join]]
-     '[clj-bash.utils :only [match-seq ensure-no-unrecognized-keys]]
+     '[clj-bash.utils :only [match-seq check-return ensure-no-unrecognized-keys]]
      '[clj-bash.cb-macro :only [cb-macro? cb-macroexpand]])
 
 (declare parse-line)
@@ -81,27 +81,18 @@
 
 ;; --- defn --- ;;
 
-;; Note: For generality, it is probably better to move
-;; this parsing process to clj-bash.str
-(defn- parse-defn-args [args]
-  (loop [rest-args args
-         arg-index 1
-         result nil]
-    (if-not (empty? rest-args)
-      (let [var-declare (add-prefix
-                         :local
-                         (parse-set-value (first rest-args)
-                                          (format "$%d" arg-index)))]
-        (recur (rest rest-args)
-               (+ arg-index 1)
-               (cons var-declare result)))
-      (reverse result))))
-
 (defn- parse-defn [name args body]
-  (add-prefix :function
-              (concat (list name)
-                      (parse-defn-args args)
-                      (parse-main body))))
+  (letfn [(check-name [name]
+            (check-return [#(or (string? %) (symbol? %))
+                           "A function name should be a string or a symbol"]
+                          name))
+          (check-args [args]
+            (check-return [vector? "A argument list should be a vector"]
+                          args))]
+    (add-prefix :function
+                (list :fn-name (check-name name)
+                      :args (check-args args)
+                      :body (parse-main body)))))
 
 ;; --- --- ;;
 

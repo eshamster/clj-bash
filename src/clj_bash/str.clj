@@ -60,10 +60,34 @@
       ~(str-main body)
       "done")))
 
+;; --- function --- ;;
+
+(defn- str-function-args [args]
+  (loop [rest-args args
+         arg-index 1
+         result nil]
+    (if-not (empty? rest-args)
+      (let [var-declare (format "local %s=\"$%d\"" (first rest-args) arg-index)]
+        (recur (rest rest-args)
+               (+ arg-index 1)
+               (cons var-declare result)))
+      (reverse result))))
+
+(defn str-function [expr]
+  (let-keys [[fn-name args body] expr]
+    (list (str "function " (name fn-name) "() {")
+          (concat (str-function-args args)
+                  (str-main body))
+          "}")))
+
+#|
 (defn- str-function [expr]
   (list (str "function " (first expr) "() {")
         (str-main (rest expr))
         "}"))
+|#
+
+;; --- --- ;;
 
 (defn- str-array [expr]
   (join-str-body " " (map str-element expr)))
