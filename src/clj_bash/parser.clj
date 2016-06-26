@@ -33,7 +33,7 @@
                           arg (type arg))))))
 
 (defn- parse-and-or [and-or exprs]
-  (add-prefix and-or (map parse-line exprs)))
+  (add-prefix and-or (parse-main exprs)))
 
 (defn- parse-and [exprs]
   (parse-and-or :and exprs))
@@ -106,19 +106,19 @@
 ;; --- --- ;;
 
 (defn- parse-do [exprs]
-  (add-prefix :do (map parse-line exprs)))
+  (add-prefix :do (parse-main exprs)))
 
 (defn- parse-for [var array rest]
   (add-prefix
    :for (list :var var
               :range (parse-arg array)
-              :body (map parse-line rest))))
+              :body (parse-main rest))))
 
 (defn- parse-set-value [name value]
   (add-prefix :set (list name (parse-arg value))))
 
 (defn- parse-pipe [exprs]
-  (add-prefix :pipe (map parse-line exprs)))
+  (add-prefix :pipe (parse-main exprs)))
 
 (defn- parse-var [var-name]
   (add-prefix :var (list (name var-name))))
