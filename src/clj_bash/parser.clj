@@ -137,8 +137,8 @@
 
 (defn- parse-while [condition body]
   (add-prefix :while
-              (cons (process-condition condition)
-                    (parse-main body))))
+              (list :condition (process-condition condition)
+                    :body (parse-main body))))
 
 ;; --- basic functions --- ;;
 

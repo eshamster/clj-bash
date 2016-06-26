@@ -113,7 +113,7 @@
            (str heredoc-identifier "EOF")))))
 
 (defn- str-while [expr]
-  (let [[condition & body] expr]
+  (let-keys [[condition body] expr]
     (list (wrap-str-body "while "
                          (str-condition-clause condition)
                          "; do")
