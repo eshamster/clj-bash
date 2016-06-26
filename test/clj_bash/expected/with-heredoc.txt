@@ -1,0 +1,6 @@
+     1	test
+     2	  test ab
+ abc de0
+test not indented
+ abc de1
+test not indented

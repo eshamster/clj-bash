@@ -2,7 +2,6 @@
 
 - 制御構造
   - case
-  - EOF
 - Syntax Sugar
   - trap
   - exportへの追記 (Ex. `export PATH=/usr/local/bin:${PATH}`)
@@ -27,6 +26,8 @@
     なので、当面はこの実装でも問題（面倒な分岐）になることはないのでは
 - var
   - default値: (var x :default test) -> ${x:-test}
+- with-heredoc
+  - ヒアドキュメント内でのコマンド実行
 
 # discussion
 

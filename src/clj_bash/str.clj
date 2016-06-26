@@ -9,6 +9,10 @@
 (declare str-element)
 (declare str-set-value)
 
+(defmacro ^:private let-keys [[key-lst pair-lst] & body]
+  `(let [[& {:keys [~@key-lst]}] ~pair-lst]
+     ~@body))
+
 (defn- str-and [expr]
   (join-str-body " && " (map str-line expr)))
 
@@ -49,17 +53,34 @@
 
 (defn- str-for [expr]
   ;; TODO: should consider if the wrap-str-body return a list
-  (let [[variable range & body] expr]
-    `(~(wrap-str-body (str "for " variable " in ")
+  (let-keys [[var range body] expr]
+    `(~(wrap-str-body (str "for " var " in ")
                       (str-line range)
                       "; do")
       ~(str-main body)
       "done")))
 
-(defn- str-function [expr]
-  (list (str "function " (first expr) "() {")
-        (str-main (rest expr))
-        "}"))
+;; --- function --- ;;
+
+(defn- str-function-args [args]
+  (loop [rest-args args
+         arg-index 1
+         result nil]
+    (if-not (empty? rest-args)
+      (let [var-declare (format "local %s=\"$%d\"" (first rest-args) arg-index)]
+        (recur (rest rest-args)
+               (+ arg-index 1)
+               (cons var-declare result)))
+      (reverse result))))
+
+(defn str-function [expr]
+  (let-keys [[fn-name args body] expr]
+    (list (str "function " (name fn-name) "() {")
+          (concat (str-function-args args)
+                  (str-main body))
+          "}")))
+
+;; --- --- ;;
 
 (defn- str-array [expr]
   (join-str-body " " (map str-element expr)))
@@ -94,8 +115,22 @@
   (let [name (first expr)]
     (wrap-str-body "${" name "}")))
 
+(def heredoc-identifier "[[EOF]]")
+
+(defn- str-with-heredoc [expr]
+  (let-keys [[body out heredoc] expr]
+    (flatten
+     (list (unite-str-body (str-line body)
+                           "<<EOF"
+                           (if (nil? out)
+                             ""
+                             (unite-str-body (if (= (first out) :out) ">" ">>")
+                                             (str-element (second out)))))
+           (map #(str heredoc-identifier %) heredoc)
+           (str heredoc-identifier "EOF")))))
+
 (defn- str-while [expr]
-  (let [[condition & body] expr]
+  (let-keys [[condition body] expr]
     (list (wrap-str-body "while "
                          (str-condition-clause condition)
                          "; do")
@@ -134,6 +169,7 @@
               [:set & expr] (str-set-value expr)
               [:string & expr] (str-string expr)
               [:var & expr] (str-var expr)
+              [:with-heredoc & expr] (str-with-heredoc expr)
               [:while & expr] (str-while expr))))
 
 (defn str-main [parsed-tree]

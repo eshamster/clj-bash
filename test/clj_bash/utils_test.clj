@@ -40,3 +40,20 @@
         [string? "should be a string"]
         100
         12))))
+
+(deftest ensure-no-unrecognized-keys-test
+  (testing "legal arguments"
+    (are [target recognized-key-lst]
+        (= (ensure-no-unrecognized-keys target recognized-key-lst) true)
+      '(:abc 1 :def 2) '(:abc :def)
+      {:abc 1 :def 2}  '(:abc :def)
+      '(:def 2 :abc 1) '(:abc :def)
+      '(:abc 1) '(:abc :def)
+      '() '(:abc :def)))
+  (testing "illegal arguments"
+    (are [target recognized-key-lst]
+        (thrown-with-msg?
+         IllegalArgumentException #"are not recognized keys"
+         (ensure-no-unrecognized-keys target recognized-key-lst))
+      '(:abc 1 :def 2) '(:abc)
+      '(:abc 1 :def 2 :ghi 3) '(:ghi :abc))))

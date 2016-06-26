@@ -85,7 +85,19 @@
                       (:echo "[and] should not print"))
                  (:echo "[or (and)] should print"))
              (and (:true) (:echo "[and] should print"))
-             (and (:echo "and1") (:echo "and2") (:echo "and3"))))
+             (and (:echo "and1") (:echo "and2") (:echo "and3")))
+  (test-bash with-heredoc
+             (with-heredoc [(:cat -n)]
+               "test"
+               "  test ab")
+             (with-heredoc [(:cat) :out "/dev/null"]
+               "not printed")
+             (with-heredoc [(:cat) :append "/dev/null"]
+               "not printed")
+             (for i [0 1]
+                  (with-heredoc [(:cat)]
+                    " abc de${i}"
+                    "test not indented"))))
 
 (deftest cb-macro-test
   (init-cb-macro-table)

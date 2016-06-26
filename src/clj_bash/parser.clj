@@ -1,7 +1,7 @@
 (ns clj-bash.parser)
 
 (use '[clojure.string :only [join]]
-     '[clj-bash.utils :only [match-seq]]
+     '[clj-bash.utils :only [match-seq check-return ensure-no-unrecognized-keys]]
      '[clj-bash.cb-macro :only [cb-macro? cb-macroexpand]])
 
 (declare parse-line)
@@ -33,7 +33,7 @@
                           arg (type arg))))))
 
 (defn- parse-and-or [and-or exprs]
-  (add-prefix and-or (map parse-line exprs)))
+  (add-prefix and-or (parse-main exprs)))
 
 (defn- parse-and [exprs]
   (parse-and-or :and exprs))
@@ -81,53 +81,55 @@
 
 ;; --- defn --- ;;
 
-;; Note: For generality, it is probably better to move
-;; this parsing process to clj-bash.str
-(defn- parse-defn-args [args]
-  (loop [rest-args args
-         arg-index 1
-         result nil]
-    (if-not (empty? rest-args)
-      (let [var-declare (add-prefix
-                         :local
-                         (parse-set-value (first rest-args)
-                                          (format "$%d" arg-index)))]
-        (recur (rest rest-args)
-               (+ arg-index 1)
-               (cons var-declare result)))
-      (reverse result))))
-
 (defn- parse-defn [name args body]
-  (add-prefix :function
-              (concat (list name)
-                      (parse-defn-args args)
-                      (parse-main body))))
+  (letfn [(check-name [name]
+            (check-return [#(or (string? %) (symbol? %))
+                           "A function name should be a string or a symbol"]
+                          name))
+          (check-args [args]
+            (check-return [vector? "A argument list should be a vector"]
+                          args))]
+    (add-prefix :function
+                (list :fn-name (check-name name)
+                      :args (check-args args)
+                      :body (parse-main body)))))
 
 ;; --- --- ;;
 
 (defn- parse-do [exprs]
-  (add-prefix :do (map parse-line exprs)))
+  (add-prefix :do (parse-main exprs)))
 
 (defn- parse-for [var array rest]
   (add-prefix
-   :for (concat (list var (parse-arg array))
-                (map parse-line rest))))
+   :for (list :var var
+              :range (parse-arg array)
+              :body (parse-main rest))))
 
 (defn- parse-set-value [name value]
   (add-prefix :set (list name (parse-arg value))))
 
 (defn- parse-pipe [exprs]
-  (add-prefix :pipe (map parse-line exprs)))
+  (add-prefix :pipe (parse-main exprs)))
 
 (defn- parse-var [var-name]
   (add-prefix :var (list (name var-name))))
+
+(defn- parse-with-heredoc [body heredoc]
+  (let [[command & {:keys [out append] :as options}] body]
+    (ensure-no-unrecognized-keys options '(:out :append))
+    (add-prefix :with-heredoc
+                (list :body (parse-line command)
+                      :out (cond (some? append) (list :append (parse-arg append))
+                                 (some? out) (list :out (parse-arg out))
+                                 :else  nil)
+                      :heredoc heredoc))))
 
 ;; --- while --- ;;
 
 (defn- parse-while [condition body]
   (add-prefix :while
-              (cons (process-condition condition)
-                    (parse-main body))))
+              (list :condition (process-condition condition)
+                    :body (parse-main body))))
 
 ;; --- basic functions --- ;;
 
@@ -152,6 +154,7 @@
        ["or" & body]   (parse-or body)
        ["set" name value]        (parse-set-value name value)
        ["var" name]    (parse-var name)
+       ["with-heredoc" [& body] & heredoc] (parse-with-heredoc body heredoc)
        ["while" condition & body] (parse-while condition body)
        ["->" & body]   (parse-pipe body)
        :else (parse-line (try-cb-macro line))))))
