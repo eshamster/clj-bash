@@ -80,13 +80,6 @@
                   (str-main body))
           "}")))
 
-#|
-(defn- str-function [expr]
-  (list (str "function " (first expr) "() {")
-        (str-main (rest expr))
-        "}"))
-|#
-
 ;; --- --- ;;
 
 (defn- str-array [expr]
